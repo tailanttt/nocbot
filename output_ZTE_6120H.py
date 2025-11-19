@@ -2102,7 +2102,7 @@ $
 """
     script += f"""
 $ ====================================================================
-$ CONFIGURAÇÃO TAACAS
+$ CONFIGURAÇÃO TACACS
 $ ====================================================================
 tacacs enable
 tacacs-client source-interface loopback100
