@@ -66,16 +66,6 @@ def gerar_script(
     
     script = f"""$    
 $ ========================================
-$ SENHAS DE ACESSO PADRÃO
-$ =======================================
-$
-$ username: who
-$ password: Who_1234
-$ enable 15 ou enable 18
-$ zxr10
-$ Zxr10, ou Zxr10_IPTN, ou Zxr10_UBP
-$ PwdFor6100Boot!
-$ ========================================
 $ Grupos de portas ZTE
 $ =======================================
 $ 11 e 12 - 1G ou 10Gb

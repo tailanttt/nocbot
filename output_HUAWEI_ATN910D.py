@@ -24,62 +24,48 @@ def gerar_script(
     portas_edd = []
     portas_bateria = []
     
-#    banner = (
-#        "*****************************ATENCAO**********************************\n"
-#        "*                                                                    *\n"
-#        "* EQUIPAMENTO DE ACESSO RESTRITO. SOMENTE PESSOAL AUTORIZADO.        *\n"
-#        "* QUALQUER TENTATIVA DE ACESSO NAO AUTORIZADO OU INDEVIDO, PODERA    *\n"
-#        "* SER OBJETO DE PROCESSO                                             *\n"
-#        "* TODOS OS ACESSOS ESTAO SENDO MONITORADOS E AUDITADOS E TODAS AS    *\n"
-#        "* INFORMACOES COLETADAS SAO DE PROPRIEDADE DA CLARO.                 *\n"
-#        "*                                                                    *\n"
-#        "**********************************************************************\n"
-#        "*\n"
-#        "****************************ATENTION**********************************\n"
-#        "*                                                                    *\n"
-#        "* RESTRICTED ACCESS EQUIPMENT. ONLY PERSONAL AUTHORIZED.             *\n"
-#        "* ANY ATTEMPT OF NOT AUTHORIZED OR IMPROPER ACCESS, CAN BE           *\n"
-#        "* PROCESS OBJECT.                                                    *\n"
-#        "* ALL ACCESSES ARE BEING MONITORED AND AUDITED AND ALL COLLECTED     *\n"
-#        "* INFORMATION ARE PROPERTY OF CLARO.                                 *\n"
-#        "*                                                                    *\n"
-#        "*********************************************************************\n"
-#    )
+    banner = (
+        "*****************************ATENCAO**********************************\n"
+        "*                                                                    *\n"
+        "* EQUIPAMENTO DE ACESSO RESTRITO. SOMENTE PESSOAL AUTORIZADO.        *\n"
+        "* QUALQUER TENTATIVA DE ACESSO NAO AUTORIZADO OU INDEVIDO, PODERA    *\n"
+        "* SER OBJETO DE PROCESSO                                             *\n"
+        "* TODOS OS ACESSOS ESTAO SENDO MONITORADOS E AUDITADOS E TODAS AS    *\n"
+        "* INFORMACOES COLETADAS SAO DE PROPRIEDADE DA CLARO.                 *\n"
+        "*                                                                    *\n"
+        "**********************************************************************\n"
+        "*\n"
+        "****************************ATENTION**********************************\n"
+        "*                                                                    *\n"
+        "* RESTRICTED ACCESS EQUIPMENT. ONLY PERSONAL AUTHORIZED.             *\n"
+        "* ANY ATTEMPT OF NOT AUTHORIZED OR IMPROPER ACCESS, CAN BE           *\n"
+        "* PROCESS OBJECT.                                                    *\n"
+        "* ALL ACCESSES ARE BEING MONITORED AND AUDITED AND ALL COLLECTED     *\n"
+        "* INFORMATION ARE PROPERTY OF CLARO.                                 *\n"
+        "*                                                                    *\n"
+        "*********************************************************************\n"
+    )
 #    with open("scripts/banner.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(banner)
-#    
-#    def centralizar(texto):
-#        return f"*{texto.center(48)}*\n"
-#
-#    linha1 = f"VOCE ESTA EM : {hostname}"
-#    linha2 = f"{uf} . {site} . {uf}{site}"
-#
-#    banner_roteador = (
-#        "**************************************************\n"
-#        "*                                                *\n"
-#        + centralizar(linha1)
-#        + centralizar(linha2)
-#        + "*                                                *\n"
-#        "**************************************************\n"
-#    )
-#    
+    
+    def centralizar(texto):
+        return f"*{texto.center(48)}*\n"
+
+    linha1 = f"VOCE ESTA EM : {hostname}"
+    linha2 = f"{uf} . {site} . {uf}{site}"
+
+    banner_roteador = (
+        "**************************************************\n"
+        "*                                                *\n"
+        + centralizar(linha1)
+        + centralizar(linha2)
+        + "*                                                *\n"
+        "**************************************************\n"
+    )
+    
 #    with open(f"scripts/{hostname}_banner.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(banner_roteador)
     script = f"""#
-# ========================================
-# SENHAS DE ACESSO PADRÃO
-# =======================================
-#
-username: root
-password: Changeme_123
-n
-#
-local-user:root password: Changeme_123
-local-user: nsvcadm password: #Hu@We1#Cl@r0#
-local-user: suporteipran Senha: tK88@5gwn#
-local-user: suporte password: claro123
-# console: Claro@123
-#
 # ========================================
 # RESET DE FABRICA
 # =======================================
@@ -2253,7 +2239,8 @@ save
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
-    return script
+    return script, banner, banner_roteador
+
 # Salva o script final
 #    with open(f"scripts/{hostname}_HUAWEI_ATN910D.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(script)
