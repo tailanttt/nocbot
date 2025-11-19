@@ -78,8 +78,8 @@ startup system software
 # =======================================
 #
 system
-stelnet server enable 
-telnet server enable 
+stelnet server enable
+telnet server enable
 commit
 aaa
 user-password password-force-change disable
@@ -94,7 +94,7 @@ stelnet server-source all-interface
 telnet server-source all-interface
 user-interface vty 0 20
 acl ACL_OPERADOR inbound
-undo acl inbound 
+undo acl inbound
 protocol inbound all
 commit
 #
@@ -125,7 +125,7 @@ interface Ethernet0/0/0
 undo shutdown
 ip binding vpn-instance __LOCAL_OAM_VPN__
 ipv6 enable
-ip address 192.168.1.1 255.255.255.0
+ip address 192.168.0.1 255.255.255.0
 ipv6 address auto link-local
 #
 # ========================================
@@ -394,8 +394,7 @@ ip netstream export source {ip_loopback}
 #========================================
 clock timezone BR minus 03:00:00
 #
-acl name NTP basic
-"""
+acl name NTP basic"""
     if hostname.startswith("RJ"):
         script += """
 rule 10 name Server_NTP_RMS_2 permit source 10.120.7.0 0.0.0.255
@@ -472,8 +471,7 @@ rule 120 name Clientes_NTP_BTS_13 permit source 10.95.0.0 0.0.255.255
         script += """
 Inserir manualemnte, pois não se enquandra aos estados de SP, ES ou RJ
 """
-    script += f"""
-rule 10000 deny
+    script += f"""rule 10000 deny
 #
 #
 ntp-service server disable
@@ -875,8 +873,7 @@ queue cs7 pq shaping shaping-percentage 5
 #========================================
 """
         for i in range(len(mwrot)):
-            script += f"""
-#
+            script += f"""#
 qos-profile {mwrot[i]["bandwidth_mbps"]}M-MWBN
 description Microwave Link {mwrot[i]["bandwidth_mbps"]}M
 user-queue cir {mwrot[i]["bandwidth"]} pir {mwrot[i]["bandwidth"]} flow-queue CLARO_MW_NNI outbound
