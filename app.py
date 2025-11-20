@@ -17,7 +17,7 @@ def modelo_destino_nome(md: str) -> str:
 
 def main():
     # Palavra CLAREOU separada e alinhada à esquerda
-    st.markdown("<h2 style='text-align: left;'>CLAREOU AI</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: left;'>NOC BOT</h2>", unsafe_allow_html=True)
 
     # Título menor para GERADOR DE SCRIPT
     st.markdown("<h3 style='text-align: center;'>GERADOR DE SCRIPT - NOC CONFIGURAÇÃO</h3>", unsafe_allow_html=True)
