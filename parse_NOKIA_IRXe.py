@@ -11,6 +11,7 @@ def extrair_dados(backup):
 # HOSTNAME
     match = re.search(r'name\s+"([^"]+)"', backup)
     hostname = match.group(1).replace('RMA', 'RMP')
+    print (hostname)
     resultado["hostname"] = hostname
     resultado["uf"] = hostname[:2]
     resultado["site"] = hostname[2:].split('-')[0].strip()
@@ -244,63 +245,63 @@ def extrair_dados(backup):
     resultado["movel"] = movel
     resultado["empresarial"] = empresarial
 
-# MOVEL 
-    lista_interfaces_Movel= []                        
-    for servico, vprn in [item for item in vprns if item[1] != 61]:        
-        blocos_vprn = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"]}{vprn}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup, re.DOTALL | re.MULTILINE)
-        if not blocos_vprn:
-            continue
-        blocos_int_movel = re.findall(r'^(?: {12}|\t{3})interface\s+".+?"\s+create.*?^(?: {12}|\t{3})exit\b', blocos_vprn[1], re.DOTALL | re.MULTILINE)                      
-        for interface_bloco in blocos_int_movel:        
-            porta_logica = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_bloco)        
-            lista_interfaces_Movel.append(porta_logica.group(1))
-
-#Removendo as portas duplicadas
-    lista_interfaces_Movel = list(dict.fromkeys(lista_interfaces_Movel))
-    
-    for porta in lista_interfaces_Movel:
-        interfaces_movel = []
-        for bloco in portas:
-            if re.search(rf'^ {{4}}port {re.escape(porta)}\b', bloco, re.MULTILINE):
-                descricao = re.search(r'\s*description\s+"([^"]+)"', bloco)
-                porta_fisica = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
-                speed = re.search(r'\s*speed\s+(\S+)', bloco)
-        
-# Todas vrfs incluindo gerencia para identificar todos os serviços
-        for servico, vprn in vprns:       
-            blocos_vprn = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"]}{vprn}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup,re.DOTALL | re.MULTILINE)
-            if not blocos_vprn:
-                continue
-            blocos_int_movel = re.findall(r'^(?: {12}|\t{3})interface\s+".+?"\s+create.*?^(?: {12}|\t{3})exit\b', blocos_vprn[1], re.DOTALL | re.MULTILINE)                    
-            
-            for interface_bloco in blocos_int_movel:
-                
-                if re.search(rf'^ {{16}}sap {re.escape(porta)}:\d+\b', interface_bloco, re.MULTILINE):
-                    interface = re.search(r'^(?: {12}|\t{3})interface\s+"(.+?)"\s+create', interface_bloco)
-                    description = re.search(r'(?: {16}|\t{4})description\s+"(.+?)"', interface_bloco)                        
-                    ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', interface_bloco)
-                    porta_logica_all = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_bloco)                    
-                    dhcp = re.search(r'server\s+(\d{1,3}(?:\.\d{1,3}){3})', interface_bloco)             
-                    tipo_servico = servico
-                    
-                    interfaces_movel.append({
-                        "interface": interface.group(1) if interface else None,
-                        "description": description.group(1) if description else None,
-                        "porta": porta_logica_all.group(1) if porta_logica_all else None,
-                        "dot1q": porta_logica_all.group(2) if porta_logica_all else None,
-                        "ip": ip.group(1) if ip else None,
-                        "dhcp": dhcp.group(1) if dhcp else None,
-                        "vprn": f'{bgp["ddd"]}{vprn}',
-                        "tipo_servico": servico
-                    })                
-                                
-        movel.append({
-            "porta": porta_fisica.group(1) if porta_fisica else None,
-            "descricao": descricao.group(1) if descricao else None,
-            "speed": speed.group(1) if speed else None,
-            "interfaces_movel": interfaces_movel
-        })
-    resultado["movel"] = movel
+## MOVEL 
+#    lista_interfaces_Movel= []                        
+#    for servico, vprn in [item for item in vprns if item[1] != 61]:        
+#        blocos_vprn = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"]}{vprn}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup, re.DOTALL | re.MULTILINE)
+#        if not blocos_vprn:
+#            continue
+#        blocos_int_movel = re.findall(r'^(?: {12}|\t{3})interface\s+".+?"\s+create.*?^(?: {12}|\t{3})exit\b', blocos_vprn[1], re.DOTALL | re.MULTILINE)                      
+#        for interface_bloco in blocos_int_movel:        
+#            porta_logica = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_bloco)        
+#            lista_interfaces_Movel.append(porta_logica.group(1))
+#
+##Removendo as portas duplicadas
+#    lista_interfaces_Movel = list(dict.fromkeys(lista_interfaces_Movel))
+#    
+#    for porta in lista_interfaces_Movel:
+#        interfaces_movel = []
+#        for bloco in portas:
+#            if re.search(rf'^ {{4}}port {re.escape(porta)}\b', bloco, re.MULTILINE):
+#                descricao = re.search(r'\s*description\s+"([^"]+)"', bloco)
+#                porta_fisica = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
+#                speed = re.search(r'\s*speed\s+(\S+)', bloco)
+#        
+## Todas vrfs incluindo gerencia para identificar todos os serviços
+#        for servico, vprn in vprns:       
+#            blocos_vprn = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"]}{vprn}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup,re.DOTALL | re.MULTILINE)
+#            if not blocos_vprn:
+#                continue
+#            blocos_int_movel = re.findall(r'^(?: {12}|\t{3})interface\s+".+?"\s+create.*?^(?: {12}|\t{3})exit\b', blocos_vprn[1], re.DOTALL | re.MULTILINE)                    
+#            
+#            for interface_bloco in blocos_int_movel:
+#                
+#                if re.search(rf'^ {{16}}sap {re.escape(porta)}:\d+\b', interface_bloco, re.MULTILINE):
+#                    interface = re.search(r'^(?: {12}|\t{3})interface\s+"(.+?)"\s+create', interface_bloco)
+#                    description = re.search(r'(?: {16}|\t{4})description\s+"(.+?)"', interface_bloco)                        
+#                    ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', interface_bloco)
+#                    porta_logica_all = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_bloco)                    
+#                    dhcp = re.search(r'server\s+(\d{1,3}(?:\.\d{1,3}){3})', interface_bloco)             
+#                    tipo_servico = servico
+#                    
+#                    interfaces_movel.append({
+#                        "interface": interface.group(1) if interface else None,
+#                        "description": description.group(1) if description else None,
+#                        "porta": porta_logica_all.group(1) if porta_logica_all else None,
+#                        "dot1q": porta_logica_all.group(2) if porta_logica_all else None,
+#                        "ip": ip.group(1) if ip else None,
+#                        "dhcp": dhcp.group(1) if dhcp else None,
+#                        "vprn": f'{bgp["ddd"]}{vprn}',
+#                        "tipo_servico": servico
+#                    })                
+#                                
+#        movel.append({
+#            "porta": porta_fisica.group(1) if porta_fisica else None,
+#            "descricao": descricao.group(1) if descricao else None,
+#            "speed": speed.group(1) if speed else None,
+#            "interfaces_movel": interfaces_movel
+#        })
+#    resultado["movel"] = movel
 
 
 #    print(f"Hostname: {resultado['hostname']}")

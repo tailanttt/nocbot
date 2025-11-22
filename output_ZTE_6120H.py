@@ -35,21 +35,21 @@ def gerar_script(
                 'xgei-1/1/0/7', 
                 'xgei-1/1/0/8', 
                 'xgei-1/1/0/9', 
-                'xgei-1/1/0/10',     
-                'xxvgei-1/1/0/13', 
-                'xxvgei-1/1/0/14', 
+                'xgei-1/1/0/10',  
+                'xxvgei-1/1/0/13',
+                'xxvgei-1/1/0/14',
                 'xxvgei-1/1/0/15', 
-                'xxvgei-1/1/0/16',]
+                'xxvgei-1/1/0/16',
+                'xxvgei-1/1/0/17',
+                'xxvgei-1/1/0/18',
+                'xxvgei-1/1/0/19',
+                'xxvgei-1/1/0/20',
+                'xxvgei-1/1/0/21',
+                'xxvgei-1/1/0/22',
+                'xxvgei-1/1/0/23',
+                'xxvgei-1/1/0/24',]
     
-    portas10g = ['xxvgei-1/1/0/17', 
-                 'xxvgei-1/1/0/18', 
-                 'xxvgei-1/1/0/19', 
-                 'xxvgei-1/1/0/20', 
-                 'xxvgei-1/1/0/21', 
-                 'xxvgei-1/1/0/22', 
-                 'xxvgei-1/1/0/23', 
-                 'xxvgei-1/1/0/24', 
-                 'xxvgei-1/1/0/25',
+    portas10g = ['xxvgei-1/1/0/25',
                  'xxvgei-1/1/0/26',
                  'xxvgei-1/1/0/27',
                  'xxvgei-1/1/0/28',
@@ -57,7 +57,7 @@ def gerar_script(
                  'xxvgei-1/1/0/30',
                  'xxvgei-1/1/0/31',
                  'xxvgei-1/1/0/32',]
-
+                 
     portas_fo = []
     portas_mwrot = []
     portas_movel = []
@@ -1975,7 +1975,6 @@ $
 """
         for x in range (len(empresarial)):  
             porta_edd = (portas10g if empresarial[i].get('speed') == '10000' else portas1g).pop(0)
-            movel
             portas_edd.append(porta_edd)
 # Interface física
             script += f"""interface {porta_edd}
