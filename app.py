@@ -117,16 +117,19 @@ def main():
                 st.session_state["hostname"] = hostname
 
             elif "NOKIA IXR-e2" in modelo_destino:
-                script = gerar_nokia_out(
-                    hostname=hostname,
+                from output_NOKIA_IXRe2 import gerar_script
+                script = gerar_script(
+                    hostname=dados["hostname"],
                     ip_loopback=dados["loopback100"],
                     uf=dados["uf"],
                     site=dados["site"],
+                    saa=dados["saa"],
                     ntp_ips=dados["ntp"],
                     ptp=dados["ptp"],
                     processo_ospf=dados["ospf"]["processo"] if dados.get("ospf") else None,
                     area_ospf_formatada=dados["area_formatada"] if dados.get("area_formatada") else None,
                     bgp=dados["bgp"],
+                    rotas_estaticas=dados["rotas_estaticas"],
                     twamp=dados["twamp"],
                     fibra=dados["fibra"],
                     mwrot=dados["mwrot"],

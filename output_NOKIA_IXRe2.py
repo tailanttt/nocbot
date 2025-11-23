@@ -7,12 +7,14 @@ def gerar_script(
     processo_ospf,
     area_ospf_formatada,
     bgp,
+    saa,
     twamp,
     fibra,
     mwrot,
     movel,
     empresarial,
-    ptp
+    ptp,
+    rotas_estaticas
 ):
 
 # Variáveis globais de portas
@@ -46,7 +48,8 @@ def gerar_script(
     portas_edd = []
     portas_bateria = []
     bnm_id = 0
-    script = f"""#--------------------------------------------------
+    script = f"""
+#--------------------------------------------------
 # Criação do Diretório de Rollback
 #--------------------------------------------------
 #
@@ -57,7 +60,7 @@ exit all
 #
 #
 #--------------------------------------------------
-# System Configuration
+# SCRIPT DE CONFIGURAÇÃO NOKIA IXRe2
 #--------------------------------------------------
 #
 configure system
@@ -1096,90 +1099,90 @@ configure card 1
 #--------------------------------------------------
 # DESATIVANDO TODAS AS PORTAS
 #--------------------------------------------------
-port 1/1/c1   
+configurate port 1/1/c1   
     shutdown
-exit
-port 1/1/c2   
+exit all
+configurate port 1/1/c2   
     shutdown
-exit
-port 1/1/c3   
+exit all
+configurate port 1/1/c3   
     shutdown
-exit
-port 1/1/c4   
+exit all
+configurate port 1/1/c4   
     shutdown
-exit
-port 1/1/c5   
+exit all
+configurate port 1/1/c5   
     shutdown
-exit
-port 1/1/c6   
+exit all
+configurate port 1/1/c6   
     shutdown
-exit
-port 1/1/c7   
+exit all
+configurate port 1/1/c7   
     shutdown
-exit
-port 1/1/c8   
+exit all
+configurate port 1/1/c8   
     shutdown
-exit
-port 1/1/c9   
+exit all
+configurate port 1/1/c9   
     shutdown
-exit
-port 1/1/c10  
+exit all
+configurate port 1/1/c10  
     shutdown
-exit
-port 1/1/c11  
+exit all
+configurate port 1/1/c11  
     shutdown
-exit
-port 1/1/c12  
+exit all
+configurate port 1/1/c12  
     shutdown
-exit
-port 1/1/c13  
+exit all
+configurate port 1/1/c13  
     shutdown
-exit
-port 1/1/c14  
+exit all
+configurate port 1/1/c14  
     shutdown
-exit
-port 1/1/c15  
+exit all
+configurate port 1/1/c15  
     shutdown
-exit
-port 1/1/c16  
+exit all
+configurate port 1/1/c16  
     shutdown
-exit
-port 1/1/c17  
+exit all
+configurate port 1/1/c17  
     shutdown
-exit
-port 1/1/c18  
+exit all
+configurate port 1/1/c18  
     shutdown
-exit
-port 1/1/c19  
+exit all
+configurate port 1/1/c19  
     shutdown
-exit
-port 1/1/c20  
+exit all
+configurate port 1/1/c20  
     shutdown
-exit
-port 1/1/c21  
+exit all
+configurate port 1/1/c21  
     shutdown
-exit
-port 1/1/c22  
+exit all
+configurate port 1/1/c22  
     shutdown
-exit
-port 1/1/c23  
+exit all
+configurate port 1/1/c23  
     shutdown
-exit
-port 1/1/c24  
+exit all
+configurate port 1/1/c24  
     shutdown
-exit
-port 1/1/c25  
+exit all
+configurate port 1/1/c25  
     shutdown
-exit
-port 1/1/c26  
+exit all
+configurate port 1/1/c26  
     shutdown
-exit
-port 1/1/c27  
+exit all
+configurate port 1/1/c27  
     shutdown
-exit
-port 1/1/c28  
+exit all
+configurate port 1/1/c28  
     shutdown
-exit
+exit all
 #--------------------------------------------------
 # LOOPBACK
 #--------------------------------------------------
@@ -1203,80 +1206,7 @@ configure system
     load-balancing hash-poly ecmp poly5 lag poly2
 exit all
 #
-#
-#--------------------------------------------------
-# Service Configuration VPRN GERENCIA, 2G, 3G, 4G e 5G
-#--------------------------------------------------
-#
-configure service
-        customer 21 create
-            description "CLARO"
-        exit
-exit all
-#
-#
-configure service vprn {bgp["ddd"]}61 name "GERENCIA" customer 21 create
-    autonomous-system {bgp["processo"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-GERENCIA"
-            vrf-export "VPN_EXPORT_VPN-GERENCIA"
-            route-distinguisher {bgp["processo"]}:61
-            auto-bind-tunnel
-                resolution any
-            exit
-            no shutdown
-        exit
-    exit
-    no shutdown
-exit
-#
-configure service vprn {bgp["ddd"]}1 name "IUB" customer 21 create
-    autonomous-system {bgp["processo"]}
-    bgp-ipvpn
-       mpls
-          vrf-import "VPN_IMPORT_VPN-DADOS"
-          vrf-export "VPN_EXPORT_VPN-DADOS"
-          route-distinguisher {bgp["processo"]}:1
-          auto-bind-tunnel
-             resolution any
-          exit
-          no shutdown
-       exit
-    exit
-exit
-#
-configure service vprn {bgp["ddd"]}103 name "ABIS" customer 21 create
-    autonomous-system {bgp["processo"]}
-    bgp-ipvpn
-        mpls
-           vrf-import "VPN_IMPORT_VPN-ABIS"
-           vrf-export "VPN_EXPORT_VPN-ABIS"
-           route-distinguisher {bgp["processo"]}:103
-           auto-bind-tunnel
-              resolution any
-           exit
-           no shutdown
-        exit
-    exit
-exit
-#
-configure service vprn {bgp["ddd"]}95 name "S1" customer 21 create
-    autonomous-system {bgp["processo"]}
-    bgp-ipvpn
-       mpls
-          vrf-import "VPN_IMPORT_VPN-LTE"
-          vrf-export "VPN_EXPORT_VPN-LTE"
-          route-distinguisher {bgp["processo"]}:95
-          auto-bind-tunnel
-             resolution any
-          exit
-          no shutdown
-       exit
-    exit
-exit
-#
-"""
+#"""
 
     if fibra:  
         script += """
@@ -2711,7 +2641,94 @@ configure router rsvp
     no shutdown
 exit all
 #   
+#--------------------------------------------------
+# Service Configuration VPRN GERENCIA, 2G, 3G, 4G e 5G
+#--------------------------------------------------
+#
+configure service
+        customer 21 create
+            description "CLARO"
+        exit
+exit all
+#
+#
+configure service vprn {bgp["ddd"]}61 name "GERENCIA" customer 21 create
+    autonomous-system {bgp["processo"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-GERENCIA"
+            vrf-export "VPN_EXPORT_VPN-GERENCIA"
+            route-distinguisher {bgp["processo"]}:61
+            auto-bind-tunnel
+                resolution any
+            exit
+            no shutdown
+        exit
+    exit
+    no shutdown
+exit
+#
+configure service vprn {bgp["ddd"]}1 name "IUB" customer 21 create
+    autonomous-system {bgp["processo"]}
+    bgp-ipvpn
+       mpls
+          vrf-import "VPN_IMPORT_VPN-DADOS"
+          vrf-export "VPN_EXPORT_VPN-DADOS"
+          route-distinguisher {bgp["processo"]}:1
+          auto-bind-tunnel
+             resolution any
+          exit
+          no shutdown
+       exit
+    exit
+exit
+#
+configure service vprn {bgp["ddd"]}103 name "ABIS" customer 21 create
+    autonomous-system {bgp["processo"]}
+    bgp-ipvpn
+        mpls
+           vrf-import "VPN_IMPORT_VPN-ABIS"
+           vrf-export "VPN_EXPORT_VPN-ABIS"
+           route-distinguisher {bgp["processo"]}:103
+           auto-bind-tunnel
+              resolution any
+           exit
+           no shutdown
+        exit
+    exit
+exit
+#
+configure service vprn {bgp["ddd"]}95 name "S1" customer 21 create
+    autonomous-system {bgp["processo"]}
+    bgp-ipvpn
+       mpls
+          vrf-import "VPN_IMPORT_VPN-LTE"
+          vrf-export "VPN_EXPORT_VPN-LTE"
+          route-distinguisher {bgp["processo"]}:95
+          auto-bind-tunnel
+             resolution any
+          exit
+          no shutdown
+       exit
+    exit
+exit
+#
 """
+    if rotas_estaticas:
+        script+= """
+#--------------------------------------------------
+# ROTAS Estáticas nas VPRN 61 1 95 103
+#--------------------------------------------------
+#"""
+        for rota in rotas_estaticas:
+            script += f"""
+configure service vprn {bgp["ddd"]}{rota["vrf_numero"]}
+    static-route-entry {rota["ip_origem"]}/{rota["mask"]}
+        next-hop {rota["ip_destino"]}
+            no shutdown
+        exit
+    exit
+exit all"""
 
     script += """
 #--------------------------------------------------
@@ -2726,10 +2743,10 @@ configure system sync-if-timing
     port_new_old = [(nova, fibra[i]["porta"]) for i, nova in enumerate(portas_fo)]
 
     if ptp:  # só entra se houver referências
-        script += "    ref-order ref1 ref2 ptp gnss"
+        script += "\n    ref-order ref1 ref2 ptp gnss"
         for i, porta_antiga in enumerate(ptp):
             porta_nova = next(nova for nova, antiga in port_new_old if antiga == porta_antiga)
-            script += f"""
+            script+=f"""
     ref{i+1}
         source-port {porta_nova}
         no shutdown
@@ -2741,8 +2758,6 @@ configure system sync-if-timing
 exit all
 #
 #"""
-
-
     script+= """
 #--------------------------------------------------
 # Redundancy Configuration
@@ -2755,12 +2770,91 @@ exit all
 #
 #
 admin save
-#
 #"""
-#    
-#    # Salva em arquivo
+
+    script+= """
+#--------------------------------------------------
+# SERVICE ASSURANCE AGENT (SAA) 
+#--------------------------------------------------"""
+
+    for rmc, ip in saa:
+        script+=f"""
+    configure saa
+        test "T1_{rmc}-BE"
+        description "-->{rmc}-BE"
+        type
+            icmp-ping {ip} rapid ttl 20 size 1500 count 100 timeout 1 fc "be" router-instance "Base"
+        exit
+        no shutdown
+    exit
+    test "T2_{rmc}-L2"
+        description "-->{rmc}-L2"
+        type
+            icmp-ping {ip} rapid ttl 20 size 1500 count 100 timeout 1 fc "l2" router-instance "Base"
+        exit
+        no shutdown
+    exit
+    test "T3_{rmc}-EF"
+        description "-->{rmc}-EF"
+        type
+            icmp-ping {ip} rapid ttl 20 size 128 count 100 timeout 1 fc "ef" router-instance "Base"
+        exit
+        no shutdown
+    exit
+    exit all"""
+    script+=r'''
+#
+#
+file md cf3:\claro-ipran-SAA-result
+/file vi cf3:\claro-ipran-SAA-result\claro-ipran-SAA-script.txt
+#
+<i> (TECLA)
+#'''
+    for rmc, ip in saa:
+        script+=f"""
+oam saa "T1_{rmc}-BE" start
+oam saa "T2_{rmc}-L2" start
+oam saa "T3_{rmc}-EF" start"""
+    script+= r'''
+#
+<ESC> (TECLA)
+#
+:wq (TECLA)
+#
+#
+configure system script-control
+            script "claro-ipran-SAA-script"
+                location "cf3:\claro-ipran-SAA-result\claro-ipran-SAA-script.txt"
+                no shutdown
+            exit
+            script-policy "claro-ipran-SAA-script"
+                results "ftp://router:router@10.129.87.98/opt/nsp/nfmp/nebackup/saa/<HOSTNAME>"
+                script "claro-ipran-SAA-script"
+                no shutdown
+            exit
+exit all
+#
+#
+configure system cron
+        schedule "claro-ipran-SAA-schedule"
+            description "Executa os testes SAA a cada 300s"
+            interval 300
+            script-policy "claro-ipran-SAA-script"
+            no shutdown
+        exit
+exit all
+#
+#
+#
+admin save
+#
+#
+'''
+
+
+## Salva em arquivo
 #    with open(f"scripts/{hostname}_NOKIA_IXRe2.txt", 'w', encoding='utf-8') as arquivo:
-#        arquivo.write(script)
+#       arquivo.write(script)
 #    print(f"✅ Script gerado com sucesso para {hostname} NOKIA IXRe2.")
 
     return script
