@@ -4,33 +4,22 @@ def extrair_dados(backup):
 
 # //------- Melhorias -------//
 # Fazer o regex único dentro das vprns dentro ddo empresárial e móvel semelhante a captura no regex de bgp community
-# MOVEL
 # Empresarial
 
 # HOSTNAME
-    match = re.search(r'name\s+"([^"]+)"', backup)
-    hostname = match.group(1).replace('RMA', 'RMP')
-    resultado["hostname"] = hostname
-    resultado["uf"] = hostname[:2]
-    resultado["site"] = hostname[2:].split('-')[0].strip()
+    resultado["hostname"] = (next(iter(re.findall(r'name\s+"([^"]+)"', backup)), None) or "").replace("RMA", "RMP")
+    resultado["uf"] = resultado["hostname"][:2]
+    resultado["site"] = resultado["hostname"][2:].split("-")[0].strip()
 # LOOPBACK100
-    match = re.search(r'router-id\s+(\d{1,3}(?:\.\d{1,3}){3})', backup)
-    resultado["loopback100"] = match.group(1) if match else None  
+    resultado["loopback100"] = next(iter(re.findall(r'router-id\s+(\d{1,3}(?:\.\d{1,3}){3})', backup)), None)
 # OSPF
-    match = re.search(r'area\s+(\d{1,3}(?:\.\d{1,3}){3})', backup)
-    resultado["area_formatada"] = match.group(1) if match else None 
+    resultado["area_formatada"] = next(iter(re.findall(r'area\s+(\d{1,3}(?:\.\d{1,3}){3})', backup)), None)
 # NTP
     resultado["ntp"] = re.findall(r'^\s*server\s+(\d+\.\d+\.\d+\.\d+)\s+version\s+\d+',backup,re.MULTILINE)
 # PTP Sync-E
     resultado["ptp"] = re.findall(r'^\s*source-port\s+([\d/]+)', backup, re.MULTILINE)
 # BGP
-    bgp = {
-    "processo": None,
-    "ips_vizinhos": [],
-    "community": [],
-    "policy": [],
-    "ddd": None
-    }
+    bgp = {"processo": [],"ddd": [],"ips_vizinhos": [],"community": [],"policy": []}
 # Captura o número do peer-as (só um processo)
     match_as = re.search(r'peer-as\s+(\d+)', backup)
     if match_as:
@@ -46,19 +35,10 @@ def extrair_dados(backup):
     community = re.findall(r'community\s+"([A-Za-z0-9]{7}-RM[CD]\d{2})"\s+members\s+"([\d:]+)"', backup, re.MULTILINE)
     bgp["community"] = bgp["community"] = sorted(community, key=lambda x: (x[0] not in bgp["policy"], bgp["policy"].index(x[0]) if x[0] in bgp["policy"] else float('inf')))
     resultado["bgp"] = bgp   
+#SAA 
+    resultado["saa"] = re.findall(r'test\s+"T1_([A-Z0-9-]+?)(?:-BE)".*?\n[\s\S]*?icmp-ping\s+(\d{1,3}(?:\.\d{1,3}){3})',backup, re.DOTALL)
 #TWAMP 
-    twamp = []
-    bloco_twamp = re.search(r'^\s{8}twamp-light(.*?)^\s{8}exit\b', backup, re.DOTALL | re.MULTILINE)
-    if bloco_twamp:
-        bloco = bloco_twamp.group(1)
-        twamp = re.findall(r'prefix\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)\s+create', bloco)
-    resultado["twamp"] = twamp
-
-#SAA
-    match = r'test\s+"T1_([A-Z0-9-]+?)(?:-BE)".*?\n[\s\S]*?icmp-ping\s+(\d{1,3}(?:\.\d{1,3}){3})'
-    rmc = re.findall(match, backup, flags=re.DOTALL)
-    resultado["saa"] = rmc if rmc else []
-
+    resultado["twamp"] = re.findall(r'^\s*prefix\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)\s+create$',backup, re.MULTILINE)
 #Portas físicas NNI
     
     portas = re.findall(r'(?m)^\s{4}port\s+\d+/\d+/\d+[\s\S]*?^\s{4}exit$', backup)
@@ -69,7 +49,7 @@ def extrair_dados(backup):
     fibra = []
     mwrot = []
     movel = []
-    portas_edd = []
+    bateria = []
     empresarial = []    
     vprns = [("ABIS", 103), ("IUB", 1), ("S1", 95), ("GERENCIA", 61)]    
     
@@ -197,7 +177,6 @@ def extrair_dados(backup):
                     "epipe": [],
                     "gerencia": None
                 }
-            
                 empresarial.append(item_edd)     
 # GERÊNCIA L3 — busca no segundo bloco vprn
                 blocos_vprn_edd = re.findall(r'^(?: {8}|\t{2})vprn 317281\b.*?^(?: {8}|\t{2})exit\b', backup, re.DOTALL | re.MULTILINE)
@@ -244,9 +223,35 @@ def extrair_dados(backup):
                         "sdp": sdp_match.group(1) if sdp_match else None,
                         "velocidade": velocidade_match.group(1) if velocidade_match else None
                     })
+# BATERIA
+            elif descricao and "UNI" in descricao.group(1) and ("BATERIA" in descricao.group(1) or "LITIO" in descricao.group(1)):
+                porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
+                speed = re.search(r'\s*speed\s+(\S+)', bloco)
+                
+                for interface_gerencia in blocos_int_gerencia:
+                    if porta and porta.group(1) in interface_gerencia:
+                        description_gerencia = re.search(r'description\s+"([^"]+)"', interface_gerencia)
+                        ip_gerencia = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', interface_gerencia)
+                        sap = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_gerencia)
+                        interface_nome = re.search(r'interface\s+"([^"]+)"', interface_gerencia)
+                    
+                        gerencia_bateria = {
+                            "interface": interface_nome.group(1) if interface_nome else None,
+                            "descricao": description_gerencia.group(1) if description_gerencia else None,
+                            "ip": ip_gerencia.group(1) if ip_gerencia else None,
+                            "porta": sap.group(1) if sap else None,
+                            "dot1q": sap.group(2) if sap else None
+                        }
+                bateria.append({
+                            "descricao": descricao.group(1) if descricao else None,                            
+                            "porta": porta.group(1) if porta else None,
+                            "speed": speed.group(1) if speed else None,
+                            "gerencia": gerencia_bateria
+                })
+                
     resultado["fibra"] = fibra
     resultado["mwrot"] = mwrot
-    resultado["movel"] = movel
+    resultado["bateria"] = bateria
     resultado["empresarial"] = empresarial
 
 # MOVEL
@@ -301,14 +306,14 @@ def extrair_dados(backup):
                         "dot1q": porta_logica_all.group(2) if porta_logica_all else None,
                         "ip": ip.group(1) if ip else None,
                         "dhcp": dhcp.group(1) if dhcp else None,
-                        "vprn": f'{bgp["ddd"]}{vprn}',
+                        "vprn": f'{vprn}',
                         "tipo_servico": servico
                     })                
                                 
         movel.append({
             "porta": porta_fisica.group(1) if porta_fisica else None,
             "descricao": descricao.group(1) if descricao else None,
-            "speed": speed.group(1) if speed else None,
+            "speed": speed.group(1) if speed else "10000",
             "interfaces_movel": interfaces_movel
         })
     resultado["movel"] = movel
@@ -341,6 +346,9 @@ def extrair_dados(backup):
 #    print(f"Vizinhos     : {', '.join([f"{neighbor_ip} - {neighbor}" for neighbor_ip, neighbor in bgp["neighbors"]]) if bgp["neighbors"] else '-'}")
 #    print(f"Communities  : {', '.join([f"{community} - {members}" for community, members in bgp["community"]]) if bgp["community"] else '-'}")
 #    print(f"Policies     : {', '.join(bgp['policy']) if bgp['policy'] else '-'}")
+#    for rmc, ip in resultado["saa"]:
+#        print("RMC:", rmc)
+#        print("IP:", ip)
 #    for ip in twamp:
 #        print(f"TWAMP - {ip}")
 #
@@ -386,7 +394,7 @@ def extrair_dados(backup):
 #                print(f"Vlan         : {interface['gerencia']['dot1q']}")
 #                
 #    
-###MOVEL
+##MOVEL
 #    for item in movel:
 #        print("\n=== Interface Física UNI MOVEL ===")
 #        print(f"Porta        : {item['porta']}")
@@ -403,6 +411,19 @@ def extrair_dados(backup):
 #            
 #            if "dhcp" in interface:
 #                print(f"DHCP         : {interface['dhcp']}")
+##Bateria
+#    for item in bateria:
+#        print("\n=== UNI Bateria ===")
+#        print(f"Porta        : {item['porta']}")
+#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Speed        : {item['speed'] if item['speed'] else '-'}")
+#
+#        if item.get("gerencia"):
+#                print(f"Interface    : {item['gerencia']['interface']}")
+#                print(f"Porta        : {item['gerencia']['porta']}")
+#                print(f"Descrição    : {item['gerencia']['descricao']}")
+#                print(f"IP           : {item['gerencia']['ip']}")
+#                print(f"Vlan         : {item['gerencia']['dot1q']}")
 #
 ## EDD
 #    for item in empresarial:
@@ -434,11 +455,6 @@ def extrair_dados(backup):
 #print(f"\n[RESUMO] Total de rotas estáticas: {len(rotas_estaticas)}")
 #    for r in rotas_estaticas:
 #        print(f'- VPRN {r["vrf_numero"]} ({r["vrf_nome"]}): {r["ip_origem"]}/{r["mask"]} -> {r["ip_destino"]}')
-## SAA
-#
-#    for rmc, ip in resultado["saa"]:
-#        print("RMC:", rmc)
-#        print("IP:", ip)
 #
     return resultado
 

@@ -12,6 +12,7 @@ def gerar_script(
     fibra,
     mwrot,
     movel,
+    bateria,
     empresarial,
     ptp,
     rotas_estaticas
@@ -95,7 +96,7 @@ configure system
         time
             ntp"""
     for ip in ntp_ips:
-        script+=f"              server {ip} version 3\n"
+        script+=f"\n              server {ip} version 3"
     script+=f"""
               no shutdown
             exit
@@ -105,8 +106,6 @@ configure system
             zone BRZ -03
         exit
 exit all
-#
-#
 #
 #
 #--------------------------------------------------
@@ -1183,6 +1182,7 @@ exit all
 configurate port 1/1/c28  
     shutdown
 exit all
+#
 #--------------------------------------------------
 # LOOPBACK
 #--------------------------------------------------
@@ -1268,8 +1268,7 @@ configure lag {port["lag"]}
     no shutdown
 exit all
 #
-#
-"""
+#"""
         for interface in port["interfaces"]:
             if port["lag"]:
                 script += f""" 
@@ -1284,8 +1283,7 @@ no shutdown
 exit
 exit all
 #
-#
-"""
+#"""
             else:
                 script += f"""configure router
 interface {interface["interface"]}
@@ -1323,10 +1321,10 @@ interface {interface["interface"]}
 exit all
 #
 #
-#
-"""
+#"""
     if any(interface.get("gerencia") for item in mwrot for interface in item["interfaces"]):
-        script += f"""#--------------------------------------------------
+        script += f"""
+#--------------------------------------------------
 # QoS MWROT GERENCIA
 #--------------------------------------------------
 configure qos
@@ -1354,8 +1352,7 @@ configure qos
         exit
 exit all
 #
-#
-"""
+#"""
     if mwrot:  
         script += """
 #--------------------------------------------------
@@ -1473,8 +1470,7 @@ configure service vprn {bgp["ddd"]}61
     exit
 exit all
 #
-#
-"""
+#"""
     if twamp: 
         script += f"""
 #--------------------------------------------------
@@ -1556,32 +1552,34 @@ configure router ospf
             no shutdown
         exit"""
     for port in fibra:
-        script += f"""
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script += f"""
         interface "{port["interfaces"][0]["interface"]}"
             interface-type point-to-point
             mtu 1500"""
-        if port["lag"]: 
-            script += """
+            if port["lag"]: 
+                script += """
             bfd-enable remain-down-on-failure
             authentication-type password
             authentication-key OSPF!#@$
 """
-        script += """
+            script += """
             no shutdown
         exit"""
 
     for port in mwrot:
-        script += f"""
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script += f"""
         interface "{port["interfaces"][0]["interface"]}"
             interface-type point-to-point
             mtu 1500"""
-        if port["lag"]: 
-            script += """
+            if port["lag"]: 
+                script += """
             bfd-enable remain-down-on-failure
             authentication-type password
             authentication-key OSPF!#@$
 """
-        script += """
+            script += """
             no shutdown
         exit"""
     script += """
@@ -1606,7 +1604,8 @@ configure router ldp
             interface-parameters"""
 
     for port in fibra:
-        script +=f"""
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script +=f"""
                 interface "{port["interfaces"][0]["interface"]}" dual-stack
                     ipv4
                         local-lsr-id interface
@@ -1619,7 +1618,8 @@ configure router ldp
                     no shutdown
                 exit"""
     for port in mwrot:
-        script +=f"""
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script +=f"""
                 interface "{port["interfaces"][0]["interface"]}" dual-stack
                     ipv4
                         local-lsr-id interface
@@ -1639,6 +1639,55 @@ configure router ldp
 exit all
 #
 #
+#--------------------------------------------------
+# Router MPLS Configuration
+#--------------------------------------------------
+#
+configure router mpls
+    interface "system"
+        no shutdown
+    exit"""            
+    for port in fibra:
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script += f""" 
+    interface "{port["interfaces"][0]["interface"]}"
+        no shutdown
+    exit"""
+    for port in mwrot: 
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script += f""" 
+    interface "{port["interfaces"][0]["interface"]}"
+        no shutdown
+    exit"""
+    script += f"""
+    no shutdown
+exit all
+#
+#
+#--------------------------------------------------
+# Router RSVP Configuration
+#--------------------------------------------------
+#
+configure router rsvp
+    interface "system"
+        no shutdown
+    exit"""            
+    for port in fibra:
+        if port.get("interfaces") and len(port["interfaces"]) > 0:        
+            script += f""" 
+    interface "{port["interfaces"][0]["interface"]}"
+        no shutdown
+    exit"""
+    for port in mwrot: 
+        if port.get("interfaces") and len(port["interfaces"]) > 0:
+            script += f""" 
+    interface "{port["interfaces"][0]["interface"]}"
+        no shutdown
+    exit"""
+    script += f"""
+    no shutdown
+exit all
+#  
 """
     script += f"""
 #--------------------------------------------------
@@ -2595,52 +2644,7 @@ configure router bgp
     no shutdown
 exit all
 #
-#
-#--------------------------------------------------
-# Router MPLS Configuration
-#--------------------------------------------------
-#
-configure router rsvp
-    interface "system"
-        no shutdown
-    exit"""            
-    for port in fibra: 
-        script += f""" 
-    interface "{port["interfaces"][0]["interface"]}"
-        no shutdown
-    exit"""
-    for port in mwrot: 
-        script += f""" 
-    interface "{port["interfaces"][0]["interface"]}"
-        no shutdown
-    exit"""
-    script += f"""
-    no shutdown
-exit all
-#
-#
-#--------------------------------------------------
-# Router RSVP Configuration
-#--------------------------------------------------
-#
-configure router rsvp
-    interface "system"
-        no shutdown
-    exit"""            
-    for port in fibra: 
-        script += f""" 
-    interface "{port["interfaces"][0]["interface"]}"
-        no shutdown
-    exit"""
-    for port in mwrot: 
-        script += f""" 
-    interface "{port["interfaces"][0]["interface"]}"
-        no shutdown
-    exit"""
-    script += f"""
-    no shutdown
-exit all
-#   
+# 
 #--------------------------------------------------
 # Service Configuration VPRN GERENCIA, 2G, 3G, 4G e 5G
 #--------------------------------------------------
@@ -2741,7 +2745,7 @@ configure system sync-if-timing
     ql-selection"""
 
     port_new_old = [(nova, fibra[i]["porta"]) for i, nova in enumerate(portas_fo)]
-
+    port_new_old += [(nova, mwrot[i]["porta"]) for i, nova in enumerate(portas_mwrot)]
     if ptp:  # só entra se houver referências
         script += "\n    ref-order ref1 ref2 ptp gnss"
         for i, porta_antiga in enumerate(ptp):
@@ -2848,13 +2852,687 @@ exit all
 #
 admin save
 #
+#'''
+    if movel:
+        script+= f"""
+#====================================================================
+#QoS 2G ABIS 103
+#====================================================================
 #
-'''
+configure qos dscp-fc-map "2" create
+            default-action fc "h2" profile in
+            dscp "ef" fc "ef"
+            dscp "cs5" fc "ef"
+            dscp "nc1" fc "h1"
+            dscp "cp62" fc "h1"
+exit all
+#
+configure qos ingress-classification-policy "2" allow-attachment any create
+            description "TC20_QOS_2G_IN"
+            dscp-fc-map "2"
+exit all
+#
+#
+configure qos sap-ingress 2 name "TC20_QOS_2G_IN" policer-allocation per-fc create
+            description "TC20_QOS_2G_IN"
+            ingress-classification-policy "2"
+            policer 5 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 6 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 7 create
+                stat-mode offered-profile-with-discards
+            exit
+exit all
+#
+#
+configure qos queue-mgmt-policy "QOS_EGRESS_MOVEL" create
+            description "QOS_EGRESS_MOVEL"
+            mbs 41000
+            high-slope
+                shutdown
+            exit
+            low-slope
+                shutdown
+            exit
+            scope template
+exit all
+#
+#
+configure qos vlan-qos-policy "2" create
+            description "QoS_2G_OUT"
+            stat-mode enqueued-with-discards
+            queue "5" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "6" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "7" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 6
+            exit
+exit all
+#
+#
+#====================================================================
+#QoS 3G IUB-DADOS 1
+#====================================================================
+#
+configure qos dscp-fc-map "10" create
+            default-action fc "h2" profile in
+            dscp "ef" fc "ef"
+            dscp "cs5" fc "ef"
+            dscp "nc1" fc "h1"
+            dscp "cp62" fc "h1"
+exit all
+#
+configure qos ingress-classification-policy "10" allow-attachment any create
+            description "TC20_QOS_3G_IN"
+            dscp-fc-map "10"
+exit all
+#
+#
+configure qos sap-ingress 10 name "TC20_QOS_3G_IN" policer-allocation per-fc create
+            description "TC20_QOS_3G_IN"
+            ingress-classification-policy "10"
+            policer 5 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 6 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 7 create
+                stat-mode offered-profile-with-discards
+            exit
+exit all
+#
+#
+configure qos queue-mgmt-policy "QOS_EGRESS_MOVEL" create
+            description "QOS_EGRESS_MOVEL"
+            mbs 41000
+            high-slope
+                shutdown
+            exit
+            low-slope
+                shutdown
+            exit
+            scope template
+exit all
+#
+#
+configure qos vlan-qos-policy "10" create
+            description "QoS_3G_OUT"
+            stat-mode enqueued-with-discards
+            queue "5" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "6" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "7" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 6
+            exit
+exit all
+#
+#
+#====================================================================
+#QoS 4G S1 95
+#====================================================================
+#
+configure qos dscp-fc-map "95" create
+            default-action fc "l2"
+            dscp "cs4" fc "l1"
+            dscp "af41" fc "l1"
+            dscp "af42" fc "l1"
+            dscp "af43" fc "l1"
+            dscp "ef" fc "ef"
+            dscp "cs5" fc "ef"
+            dscp "nc1" fc "h1"
+            dscp "cp62" fc "h1"
+exit all
+#
+configure qos ingress-classification-policy "95" allow-attachment any create
+            description "TC20_QOS_4G_IN"
+            dscp-fc-map "95"
+exit all
+#
+#
+configure qos sap-ingress 95 name "TC20_QOS_4G_IN" policer-allocation per-fc create
+            description "TC20_QOS_4G_IN"
+            ingress-classification-policy "95"
+            policer 2 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 4 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 6 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 7 create
+                stat-mode offered-profile-with-discards
+            exit
+exit all
+#
+#
+configure qos queue-mgmt-policy "QOS_EGRESS_MOVEL" create
+     description "QOS_EGRESS_MOVEL"
+     mbs 41000
+     high-slope
+      shutdown
+     exit
+     low-slope
+       shutdown
+     exit
+     scope template
+exit all
+#
+#
+configure qos vlan-qos-policy "95" create
+            description "QoS_4G_OUT"
+            stat-mode enqueued-with-discards
+            queue "1" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "2" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "4" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "6" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "7" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 6
+            exit
+exit all
+#
+#
+#====================================================================
+#QoS 5G S1 95
+#====================================================================
+#
+configure qos dscp-fc-map "97" create
+            default-action fc "l2"
+            dscp "cs4" fc "l1"
+            dscp "af41" fc "l1"
+            dscp "af42" fc "l1"
+            dscp "af43" fc "l1"
+            dscp "ef" fc "ef"
+            dscp "cs5" fc "ef"
+            dscp "nc1" fc "h1"
+            dscp "cp62" fc "h1"
+exit all
+#
+configure qos ingress-classification-policy "97" allow-attachment any create
+            description "TC20_QOS_5G_IN"
+            dscp-fc-map "97"
+exit all
+#
+#
+configure qos sap-ingress 97 name "TC20_QOS_5G_IN" policer-allocation per-fc create
+            description "TC20_QOS_5G_IN"
+            ingress-classification-policy "97"
+            policer 2 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 4 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 6 create
+                stat-mode offered-profile-with-discards
+            exit
+            policer 7 create
+                stat-mode offered-profile-with-discards
+            exit
+exit all
+#
+#
+configure qos queue-mgmt-policy "QOS_EGRESS_MOVEL" create
+     description "QOS_EGRESS_MOVEL"
+     mbs 41000
+     high-slope
+      shutdown
+     exit
+     low-slope
+       shutdown
+     exit
+     scope template
+exit all
+#
+#
+configure qos vlan-qos-policy "97" create
+            description "QoS_5G_OUT"
+            stat-mode enqueued-with-discards
+            queue "1" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "2" create
+                queue-mgmt "QOS_EGRESS_MOVEL"
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "4" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 1
+            exit
+            queue "6" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "7" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 6
+            exit
+exit all
+#
+#
+#====================================================================
+#QoS GERENCIA 61
+#====================================================================
+#
+configure qos dscp-fc-map "132" create
+            default-action fc "af"
+            dscp "ef" fc "nc"
+            dscp "nc2" fc "nc"
+exit all
+#
+configure qos ingress-classification-policy "132" allow-attachment any create
+            description "TC20_QOS_GERENCIA_MOVEL_IN"
+            dscp-fc-map "132"
+exit all
+#
+#
+configure qos sap-ingress 132 name "TC20_QOS_GERENCIA_MOVEL_IN" policer-allocation per-fc create
+     description "TC20_QOS_GERENCIA_MOVEL_IN"
+     ingress-classification-policy "132"
+     policer 3 create
+        stat-mode offered-profile-with-discards
+     exit
+     policer 8 create
+        stat-mode offered-profile-with-discards
+     exit
+exit all
+#
+#
+configure qos vlan-qos-policy "132" create
+            description "QOS_GERENCIA_MOVEL_OUT"
+            stat-mode enqueued-with-discards
+            queue "3" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 3
+            exit
+            queue "8" create
+                percent-rate 100.00 cir 0.00
+                scheduling-priority 6
+            exit
+exit all
+"""
 
+    for porta in movel:
+        porta_movel = portas10.pop(0)
+        portas_movel.append(porta_movel)
+        script+= f"""
+#====================================================================
+# SERVIÇOS MOVEIS INTERFACE FISICA
+#====================================================================
+    
+configure port {porta_movel}
+    connector
+        breakout c1-{int(porta["speed"])//1000}g
+    exit
+    no shutdown
+exit all
+#
+configure port {porta_movel}/1
+    description "{porta["descricao"]}"
+    ethernet
+        mode access
+        encap-type dot1q
+        speed {porta["speed"]}
+        duplex full
+        autonegotiate limited
+    exit
+    no shutdown
+exit all
+#
+#"""
+        for interface in porta["interfaces_movel"]:
+            if int(interface["vprn"]) == 103: 
+                script += f"""
+#====================================================================
+# CONFIGURAÇÃO 2G ABIS 103
+#====================================================================
+#
+configure service vprn {bgp["ddd"]}{interface["vprn"]} name "ABIS" customer 21 create
+    autonomous-system 650{bgp["ddd"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-ABIS"
+            vrf-export "VPN_EXPORT_VPN-ABIS"
+            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
+            auto-bind-tunnel
+               resolution any
+            exit
+            no shutdown
+        exit
+    exit
+    interface "{interface["interface"]}" create
+        description "{interface["description"]}"
+        address {interface["ip"]}
+        sap {porta_movel}:{interface["dot1q"]} create
+            shutdown
+            ingress
+                qos 2
+            exit
+            egress
+                vlan-qos-policy "2"
+            exit
+            collect-stats
+            accounting-policy 12
+            no shutdown
+        exit
+        no shutdown
+    exit
+    no shutdown
+exit all
+#"""
+            elif int(interface["vprn"]) == 1: 
+                script += f"""
+#====================================================================
+# CONFIGURAÇÃO 3G IUB-DADOS 1
+#====================================================================
+#
+configure service vprn {bgp["ddd"]}{interface["vprn"]} name "IUB" customer 21 create
+    autonomous-system 650{bgp["ddd"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-DADOS"
+            vrf-export "VPN_EXPORT_VPN-DADOS"
+            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
+            auto-bind-tunnel
+                resolution any
+            exit
+            no shutdown
+        exit
+    exit
+    interface "{interface["interface"]}" create
+        description "{interface["description"]}"
+        address {interface["ip"]}
+        sap {porta_movel}:{interface["dot1q"]} create
+            shutdown
+            ingress
+                qos 10
+            exit
+            egress
+                vlan-qos-policy "10"
+            exit
+            collect-stats
+            accounting-policy 12
+            no shutdown
+        exit
+        no shutdown
+    exit
+    no shutdown
+exit all
+#
+#"""
+            elif int(interface["vprn"]) == 95 and not "5G" in interface["description"]: 
+                script += f"""
+#====================================================================
+# CONFIGURAÇÃO 4G S1 95
+#====================================================================
+
+configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 create
+    autonomous-system 650{bgp["ddd"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-LTE"
+            vrf-export "VPN_EXPORT_VPN-LTE"
+            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
+            auto-bind-tunnel
+                resolution any
+            exit
+            no shutdown
+        exit
+   exit
+    interface "{interface["interface"]}" create
+        description "{interface["description"]}"
+        address {interface["ip"]}
+        sap {porta_movel}:{interface["dot1q"]} create
+            shutdown
+            ingress
+                qos 95
+            exit
+            egress
+                vlan-qos-policy "95"
+            exit
+            collect-stats
+            accounting-policy 12
+            no shutdown
+        exit
+        no shutdown
+    exit
+    no shutdown
+exit all
+#
+#"""
+            elif int(interface["vprn"]) == 95 and "5G" in interface["description"]:  
+                script += f"""
+#====================================================================
+# CONFIGURAÇÃO 5G S1 95
+#====================================================================
+#
+configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 create
+    autonomous-system 650{bgp["ddd"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-LTE"
+            vrf-export "VPN_EXPORT_VPN-LTE"
+            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
+            auto-bind-tunnel
+                resolution any
+            exit
+            no shutdown
+        exit
+    exit
+    interface "{interface["interface"]}" create
+        description "{interface["description"]}"
+        address {interface["ip"]}
+        sap {porta_movel}:{interface["dot1q"]} create
+            shutdown
+            ingress
+                qos 97
+            exit
+            egress
+                vlan-qos-policy "97"
+            exit
+            collect-stats
+            accounting-policy 12
+            no shutdown
+        exit
+        no shutdown
+    exit
+    no shutdown
+exit all
+#
+#"""
+            else:
+                script += f"""
+#====================================================================
+# CONFIGURAÇÃO GERENCIA 61
+#====================================================================
+configure service vprn {bgp["ddd"]}{interface["vprn"]} name "GERENCIA" customer 21 create
+    autonomous-system 650{bgp["ddd"]}
+    bgp-ipvpn
+        mpls
+            vrf-import "VPN_IMPORT_VPN-GERENCIA"
+            vrf-export "VPN_EXPORT_VPN-GERENCIA"
+            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
+            auto-bind-tunnel
+               resolution any
+            exit
+            no shutdown
+        exit
+    exit   
+    interface "{interface["interface"]}" create
+        description "{interface["description"]}"
+        address {interface["ip"]}
+        dhcp
+            no option
+            server {interface['dhcp']}
+            gi-address {interface["ip"].split("/")[0].strip()}
+            no shutdown
+        exit
+        sap {porta_movel}:{interface["dot1q"]} create
+            shutdown
+            ingress
+                qos 132
+            exit
+            egress
+                vlan-qos-policy "132"
+            exit
+            collect-stats
+            accounting-policy 12
+            no shutdown
+        exit
+        no shutdown
+    exit
+    no shutdown
+exit all
+#
+#
+admin save
+#"""
+    if bateria:
+        script += f"""
+#====================================================================
+# QOS BATERIA
+#==================================================================== 
+configure qos dscp-fc-map "32" create
+            default-action fc "af"
+            exit all
+#
+#
+configure qos ingress-classification-policy "32" allow-attachment any create
+            description "TC20_QOS_GERENCIA_IN"
+            dscp-fc-map "32"
+        exit all
+#
+#
+configure qos sap-ingress 32 name "TC20_QOS_GERENCIA_IN" policer-allocation per-fc create
+            description "TC20_QOS_GERENCIA_IN"
+            ingress-classification-policy "32"
+            policer 3 create
+                stat-mode offered-profile-with-discards
+            exit
+exit all
+#
+#
+#====================================================================
+# BATERIA LITIO
+#===================================================================="""
+        for porta in bateria: 
+            porta_bateria = portas10.pop(0)
+            portas_bateria.append(porta_bateria)
+            script += f"""
+configure port {porta_bateria}
+        connector
+            breakout c1-1g
+        exit
+        no shutdown
+    exit all
+#
+#
+configure port {porta_bateria}/1
+        description "{porta["descricao"]}"
+        ethernet
+            mode access
+            speed 1000
+            duplex full
+            encap-type dot1q
+            autonegotiate
+        back
+        no shutdown
+    exit all
+#
+#
+configure service vprn {bgp["ddd"]}61
+            interface "{porta["gerencia"]["interface"]}" create
+                description "{porta["gerencia"]["descricao"]}"
+                address {porta["gerencia"]["ip"]}
+                sap {porta_bateria}:0 create
+                    ingress
+                        qos 32
+                    exit
+                    collect-stats
+                    accounting-policy 12
+                exit
+            exit
+            no shutdown
+        exit all
+#
+#
+admin save
+#"""
+# DE PARA
+
+    de_para_fo = []
+    de_para_mwrot = []
+    de_para_movel = []
+    de_para_bateria = []
+    de_para_empresarial = []
+
+    de_para_texto = "\n### DE PARA ###\n"
+
+# NNI FO
+    for i in range(len(fibra or [])):
+        porta_antiga = fibra[i]['porta']
+        porta_nova = f"{portas_fo[i]}"
+        de_para_texto += f"De {porta_antiga} → Para {porta_nova} - NNI FIBRA\n"
+
+# NNI MW-ROT
+    for i in range(len(mwrot or [])):
+        porta_antiga = mwrot[i]['porta']
+        porta_nova = f"{portas_mwrot[i]}"
+        de_para_texto += f"De {porta_antiga} → Para {porta_nova} - NNI RADIO\n"
+
+# UNI MOVEL
+    for i in range(len(movel or [])):
+        porta_antiga = movel[i]['porta']
+        porta_nova = f"{portas_movel[i]}"
+        de_para_texto += f"De {porta_antiga} → Para {porta_nova} - UNI MOVEL\n"
+    for i in range(len(bateria or [])):
+        porta_antiga = bateria[i]['porta']
+        porta_nova = f"{portas_bateria[i]}"
+        de_para_texto += f"De {porta_antiga} → Para {porta_nova} - BATERIA\n"
+
+# Insere o DE PARA no topo do script
+    script = de_para_texto + script
 
 ## Salva em arquivo
 #    with open(f"scripts/{hostname}_NOKIA_IXRe2.txt", 'w', encoding='utf-8') as arquivo:
 #       arquivo.write(script)
 #    print(f"✅ Script gerado com sucesso para {hostname} NOKIA IXRe2.")
-
+#
     return script

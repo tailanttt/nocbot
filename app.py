@@ -3,7 +3,7 @@ from parse_CISCO_ASR920 import extrair_dados as extrair_cisco
 from parse_NOKIA_IRXe import extrair_dados as extrair_nokia
 from output_HUAWEI_ATN910D import gerar_script as gerar_huawei
 from output_ZTE_6120H import gerar_script as gerar_zte
-from output_NOKIA_IXRe2 import gerar_script as gerar_nokia_out
+from output_NOKIA_IXRe2 import gerar_script as gerar_nokia
 
 # Função auxiliar para normalizar nome do modelo
 def modelo_destino_nome(md: str) -> str:
@@ -44,11 +44,13 @@ def main():
 
     backup = None
     if opcao == "Colar texto":
-        backup = st.text_area("Cole aqui o conteúdo do arquivo", height=300)
+        backup = st.text_area("Cole aqui o conteúdo", height=300)
     else:
-        arquivo = st.file_uploader("Faça upload do arquivo de configuração (.txt ou .cfg)", type=["txt", "cfg"])
-        if arquivo is not None:
-            backup = arquivo.read().decode("utf-8")
+        arquivo = st.file_uploader("Upload (.txt ou .cfg)", type=["txt", "cfg"])
+        if arquivo:
+            raw_bytes = arquivo.getvalue()
+            backup = raw_bytes.decode("utf-8", errors="ignore")
+            backup = backup.replace("\r\n", "\n")
 
     # Etapa 3: processar
     if backup:
@@ -117,8 +119,7 @@ def main():
                 st.session_state["hostname"] = hostname
 
             elif "NOKIA IXR-e2" in modelo_destino:
-                from output_NOKIA_IXRe2 import gerar_script
-                script = gerar_script(
+                script = gerar_nokia(
                     hostname=dados["hostname"],
                     ip_loopback=dados["loopback100"],
                     uf=dados["uf"],
@@ -134,6 +135,7 @@ def main():
                     fibra=dados["fibra"],
                     mwrot=dados["mwrot"],
                     movel=dados["movel"],
+                    bateria=dados["bateria"],
                     empresarial=dados["empresarial"],
                 )
                 st.session_state["script"] = script
