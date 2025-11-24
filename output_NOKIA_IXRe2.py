@@ -1264,7 +1264,7 @@ configure lag {port["lag"]}
     description "{port["descricao"]}"
     mode network
     lacp active
-    port {porta_fo}        
+    port {porta_fo}/1        
     no shutdown
 exit all
 #
@@ -1285,11 +1285,12 @@ exit all
 #
 #"""
             else:
-                script += f"""configure router
-interface {interface["interface"]}
+                script += f"""
+configure router
+    interface {interface["interface"]}
     description "{interface["descricao"]}"
     address {interface["ip"]}
-    port {porta_fo}
+    port {porta_fo}/1
     egress
         vlan-qos-policy "QOS_BACKBONE_CLARO"
     exit
@@ -1420,7 +1421,7 @@ configure router
     interface {interface["interface"]}
     description "{interface["descricao"]}"
     address {interface["ip"]}
-    port {porta_mwrot}:{interface["dot1q"]}
+    port {porta_mwrot}/1:{interface["dot1q"]}
     egress
         vlan-qos-policy "QOS_BACKBONE_CLARO"
     exit
@@ -1458,7 +1459,7 @@ configure service vprn {bgp["ddd"]}61
     interface "{interface["gerencia"]["interface"]}" create
         description "{interface["gerencia"]["descricao"]}"
         address {interface["gerencia"]["ip"]}
-        sap {porta_mwrot}:{interface["gerencia"]["dot1q"]} create
+        sap {porta_mwrot}/1:{interface["gerencia"]["dot1q"]} create
             ingress
                 qos 32
             exit
@@ -1559,10 +1560,13 @@ configure router ospf
             mtu 1500"""
             if port["lag"]: 
                 script += """
+            authentication-type password
+            authentication-key OSPF!#@$"""
+            else: 
+                script+= """
             bfd-enable remain-down-on-failure
             authentication-type password
-            authentication-key OSPF!#@$
-"""
+            authentication-key OSPF!#@$"""
             script += """
             no shutdown
         exit"""
@@ -1575,10 +1579,13 @@ configure router ospf
             mtu 1500"""
             if port["lag"]: 
                 script += """
+            authentication-type password
+            authentication-key OSPF!#@$"""
+            else: 
+                script+= """
             bfd-enable remain-down-on-failure
             authentication-type password
-            authentication-key OSPF!#@$
-"""
+            authentication-key OSPF!#@$"""
             script += """
             no shutdown
         exit"""
@@ -2752,7 +2759,7 @@ configure system sync-if-timing
             porta_nova = next(nova for nova, antiga in port_new_old if antiga == porta_antiga)
             script+=f"""
     ref{i+1}
-        source-port {porta_nova}
+        source-port {porta_nova}/1
         no shutdown
     exit"""
 
@@ -3240,7 +3247,7 @@ configure service vprn {bgp["ddd"]}{interface["vprn"]} name "ABIS" customer 21 c
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
-        sap {porta_movel}:{interface["dot1q"]} create
+        sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress
                 qos 2
@@ -3279,7 +3286,7 @@ configure service vprn {bgp["ddd"]}{interface["vprn"]} name "IUB" customer 21 cr
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
-        sap {porta_movel}:{interface["dot1q"]} create
+        sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress
                 qos 10
@@ -3319,7 +3326,7 @@ configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 cre
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
-        sap {porta_movel}:{interface["dot1q"]} create
+        sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress
                 qos 95
@@ -3359,7 +3366,7 @@ configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 cre
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
-        sap {porta_movel}:{interface["dot1q"]} create
+        sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress
                 qos 97
@@ -3404,7 +3411,7 @@ configure service vprn {bgp["ddd"]}{interface["vprn"]} name "GERENCIA" customer 
             gi-address {interface["ip"].split("/")[0].strip()}
             no shutdown
         exit
-        sap {porta_movel}:{interface["dot1q"]} create
+        sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress
                 qos 132
@@ -3481,7 +3488,7 @@ configure service vprn {bgp["ddd"]}61
             interface "{porta["gerencia"]["interface"]}" create
                 description "{porta["gerencia"]["descricao"]}"
                 address {porta["gerencia"]["ip"]}
-                sap {porta_bateria}:0 create
+                sap {porta_bateria}/1:0 create
                     ingress
                         qos 32
                     exit
@@ -3534,5 +3541,5 @@ admin save
 #    with open(f"scripts/{hostname}_NOKIA_IXRe2.txt", 'w', encoding='utf-8') as arquivo:
 #       arquivo.write(script)
 #    print(f"✅ Script gerado com sucesso para {hostname} NOKIA IXRe2.")
-#
+
     return script
