@@ -137,24 +137,37 @@ configure system
                         action permit
                     exit
                     entry 8
-                        description "permit Protocolo TCP Sessao_SRC"
-                        src-port cpm
+                        description "permit Protocolo LDP Sessao"
                         protocol tcp
+                        l4-src-port 646 65535
                         action permit
                     exit
                     entry 9
-                        description "permit Protocolo LDP Sessao_DST"
+                        description "permit Protocolo LDP Sessao"
                         protocol tcp
+                        dst-port 646 65535
+                        action permit
+                    exit
+                    entry 10
+                        description "permit Protocolo LDP Hello"
+                        protocol udp
+                        l4-src-port 646 65535
                         action permit
                     exit
                     entry 11
-                        description "permit Protocolo LDP Hello_DST"
+                        description "permit Protocolo LDP Hello"
                         protocol udp
                         dst-port 646 65535
                         action permit
                     exit
+                    entry 12
+                        description "permit UDP Echo"
+                        protocol udp
+                        l4-src-port 7 65535
+                        action permit
+                    exit
                     entry 13
-                        description "permit UDP Echo_DST"
+                        description "permit UDP Echo"
                         protocol udp
                         dst-port 7 65535
                         action permit
@@ -164,32 +177,62 @@ configure system
                         protocol rsvp
                         action permit
                     exit
+                    entry 15
+                        description "permit FTP_SRC"
+                        protocol tcp
+                        l4-src-port 21 65535
+                        action permit
+                    exit
+                    entry 16
+                        description "permit FTP_DST"
+                        protocol tcp
+                        dst-port 21 65535
+                        action permit
+                    exit
+                    entry 17
+                        description "permit FTP_SRC"
+                        protocol tcp
+                        l4-src-port 20 65535
+                        action permit
+                    exit
+                    entry 18
+                        description "permit FTP_DST"
+                        protocol tcp
+                        dst-port 20 65535
+                        action permit
+                    exit
                     entry 19
                         description "permit OSPF over IPV4"
                         protocol ospf-igp
                         action permit
                     exit
                     entry 20
-                        description "PERMIT_BGP_DST"
+                        description "PERMIT_BGP"
                         protocol tcp
                         dst-port 179 65535
                         action permit
                     exit
+                    entry 21
+                        description "PERMIT_BGP"
+                        protocol tcp
+                        l4-src-port 179 65535
+                        action permit
+                    exit
                     entry 24
-                        description "permit BFD_DST"
+                        description "permit BFD"
                         protocol udp
                         dst-port 3784 65535
                         action permit
                     exit
                     entry 28
-                        description "Permite Traceroute_DST"
+                        description "Permite Traceroute"
                         protocol udp
                         dst-port 33408 65408
                         action permit
                     exit
                     entry 34
                         description "PERMIT_VRRP"
-                        protocol vrrp
+                        protocol vrrp 
                         action permit
                     exit
                     entry 40
@@ -205,7 +248,7 @@ configure system
                         action permit
                     exit
                     entry 50
-                        description "PERMIT_RIP_DST"
+                        description "PERMIT_RIP"
                         protocol udp
                         dst-port 520 65535
                         action permit
@@ -218,58 +261,67 @@ configure system
                     exit
                     entry 55
                         description "PERMIT_TACACS_SERVER1"
-                        src-ip 10.129.199.25/32
                         protocol tcp
+                        src-ip 10.129.199.25/32
+                        l4-src-port 49 65535
                         action permit
                     exit
                     entry 56
                         description "PERMIT_TACACS_SERVER2"
-                        src-ip 10.108.199.25/32
                         protocol tcp
+                        src-ip 10.108.199.25/32
+                        l4-src-port 49 65535
+                        action permit
+                    exit
+                    entry 59
+                        description "PROTOCOLO PIM"
+                        protocol pim
                         action permit
                     exit
                     entry 60
                         description "PERMIT_NTP_SERVER1"
-                        src-ip {ntp_ips[0]}/32
                         protocol udp
+                        src-ip {ntp_ips[0]}/32
                         dst-port 123 65535
                         action permit
                     exit
                     entry 61
                         description "PERMIT_NTP_SERVER2"
-                        src-ip {ntp_ips[1]}/32
                         protocol udp
+                        src-ip {ntp_ips[1]}/32
                         dst-port 123 65535
                         action permit
                     exit
                     entry 62
-                        description "SLAVIEW SNMP"
-                        src-ip 10.0.0.0/8
-                        protocol udp
-                        dst-port 161 65535
-                        action permit
+                       description "SLAVIEW SNMP"
+                       protocol udp
+                       dst-port 161 65535
+                       src-ip 10.0.0.0/8
+                       action permit
                     exit
-                    entry 67
-                        description "PROTOCOLO PIM"
-                        protocol pim
-                        action permit
+                    entry 63
+                       description "permit NTP originated from access router"
+                       protocol udp
+                       dst-port 123 65535
+                       src-ip 10.0.0.0/8
+                       action permit
                     exit
                     entry 70
-                        description "permit GRPC NSP 24.11 - SPOMB"
+                        description "permit Telemetria NSP 24.11 - SPOMB"
                         src-ip 10.101.70.0/25
                         protocol tcp
                         dst-port 57400 65535
                         action permit
                     exit
                     entry 71
-                        description "permit GRPC NSP 24.11 - RJOAM"
+                        description "permit Telemetria NSP 24.11 - RJOAM"
                         src-ip 10.199.70.0/25
                         protocol tcp
                         dst-port 57400 65535
                         action permit
                     exit
                     entry 72
-                        description "permit GRPC - TELCO"
+                        description "permit Telemetria - TELCO"
                         src-ip 200.244.182.192/26
                         protocol tcp
                         dst-port 57400 65535
@@ -427,8 +479,8 @@ configure system
                         dst-port 161 65535
                         action permit
                     exit
-                    no shutdown
                     default-action deny
+                    no shutdown 
                 exit
             exit
             profile "default"
@@ -1912,24 +1964,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-LTE"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
-                exit
                 entry 10
                     from
                         protocol bgp-vpn
@@ -2045,24 +2079,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-ABIS"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
-                exit
                 entry 10
                     from
                         protocol bgp-vpn
@@ -2178,24 +2194,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-GBIU"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
-                exit
                 entry 10
                     from
                         protocol bgp-vpn
@@ -2311,23 +2309,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-DADOS"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
                 exit
                 entry 10
                     from
@@ -2444,24 +2425,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-GERENCIA"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
-                exit
                 entry 10
                     from
                         protocol bgp-vpn
@@ -2577,24 +2540,6 @@ configure router policy-options
                 exit
             exit
             policy-statement "VPN_IMPORT_VPN-VIDEOSURV"
-                entry 5
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][0]}"
-                    exit
-                    action next-entry
-                        local-preference 200
-                    exit
-                exit
-                entry 6
-                    from
-                        protocol bgp-vpn
-                        community "{bgp["policy"][1]}"
-                    exit
-                    action next-entry
-                        local-preference 150
-                    exit
-                exit
                 entry 10
                     from
                         protocol bgp-vpn
@@ -2794,21 +2739,21 @@ admin save
         test "T1_{rmc}-BE"
         description "-->{rmc}-BE"
         type
-            icmp-ping {ip} rapid ttl 20 size 1500 count 100 timeout 1 fc "be" router-instance "Base"
+            icmp-ping {ip} ttl 20 size 1500 count 100 timeout 1 fc "be" router-instance "Base"
         exit
         no shutdown
     exit
     test "T2_{rmc}-L2"
         description "-->{rmc}-L2"
         type
-            icmp-ping {ip} rapid ttl 20 size 1500 count 100 timeout 1 fc "l2" router-instance "Base"
+            icmp-ping {ip} ttl 20 size 768 count 100 timeout 1 fc "l2" router-instance "Base"
         exit
         no shutdown
     exit
     test "T3_{rmc}-EF"
         description "-->{rmc}-EF"
         type
-            icmp-ping {ip} rapid ttl 20 size 128 count 100 timeout 1 fc "ef" router-instance "Base"
+            icmp-ping {ip} ttl 20 size 128 count 100 timeout 1 fc "ef" router-instance "Base"
         exit
         no shutdown
     exit
