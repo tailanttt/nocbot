@@ -17,7 +17,7 @@ def extrair_dados(backup):
 # NTP
     resultado["ntp"] = re.findall(r'^\s*server\s+(\d+\.\d+\.\d+\.\d+)\s+version\s+\d+',backup,re.MULTILINE)
 # PTP Sync-E
-    resultado["ptp"] = re.findall(r'^\s*source-port\s+([\d/]+)', backup, re.MULTILINE)
+    resultado["ptp"] = re.findall(r'^\s*source-port\s+(\S+)', backup, re.MULTILINE)
 # BGP
     bgp = {"processo": [],"ddd": [],"ips_vizinhos": [],"community": [],"policy": []}
 # Captura o número do peer-as (só um processo)
@@ -41,7 +41,7 @@ def extrair_dados(backup):
     resultado["twamp"] = re.findall(r'^\s*prefix\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)\s+create$',backup, re.MULTILINE)
 #Portas físicas NNI
     
-    portas = re.findall(r'(?m)^\s{4}port\s+\d+/\d+/\d+[\s\S]*?^\s{4}exit$', backup)
+    portas = re.findall(r'(?m)^\s{4}port\s+\S+[\s\S]*?^\s{4}exit$', backup)
     blocos_interface = re.findall(r'^\s{8}interface\s+"(TO[^"]+)"(.*?)^\s{8}exit\b', backup, re.DOTALL | re.MULTILINE)    
     blocos_lag = list(re.finditer(r'(?m)^ {4}lag (\d+)[\s\S]*?^ {4}exit$', backup))
     blocos_gerencia = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"] + "61"}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup, re.DOTALL | re.MULTILINE)
@@ -59,8 +59,8 @@ def extrair_dados(backup):
 #FO            
             if descricao and "NNI" in descricao.group(1) and not ("MW-ROT" in descricao.group(1) or "MWROT" in descricao.group(1)):
                 interfaces_nni = []
-                porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
-                speed = re.search(r'\s*speed\s+(\S+)', bloco)    
+                porta = re.search(r'^\s*port\s+(\S+)', bloco, re.MULTILINE)
+                speed = re.search(r'\s*speed\s+(\S+)', bloco)
 # Verifica se a porta está em algum LAG
                 lag = None
                 dot1q = None
@@ -68,7 +68,7 @@ def extrair_dados(backup):
                     for match in blocos_lag:
                         bloco_lag = match.group(0)
                         lag_num = match.group(1)
-                        portas_lag = re.findall(r'port (\d+/\d+/\d+)', bloco_lag)
+                        portas_lag = re.findall(r'port\s+(\S+)', bloco_lag)
                         if porta.group(1) in portas_lag:
                             lag = int(lag_num)
                             break
@@ -214,6 +214,16 @@ def extrair_dados(backup):
                     sdp_match = re.search(r'spoke-sdp\s+(\d+):\d+', bloco_epipe)
                     velocidade_match = re.search(r'aggregate-policer-rate\s+(\d+)', bloco_epipe)
                 
+#PROCURA BLOCO SDP
+                    descricao_sdp, ip_sdp = None, None
+                    if sdp_match:
+                        blocos_sdp = re.findall(rf'^(?: {{8}}|\t{{2}})sdp {sdp_match.group(1)} .*?^(?: {{8}}|\t{{2}})exit\b',backup,re.DOTALL | re.MULTILINE)
+                        for bloco_sdp in blocos_sdp:
+                            desc_match = re.search(r'description\s+"([^"]+)"', bloco_sdp)
+                            ip_match   = re.search(r'far-end\s+([\d\.]+)', bloco_sdp)
+                            descricao_sdp = desc_match.group(1) if desc_match else None
+                            ip_sdp        = ip_match.group(1) if ip_match else None
+                
                     item_edd["epipe"].append({
                         "epipe": epipe_match.group(1) if epipe_match else None,
                         "descricao": descricao_match.group(1) if descricao_match else None,
@@ -221,10 +231,13 @@ def extrair_dados(backup):
                         "vlan": porta_match.group(2),
                         "mtu": mtu_match.group(1) if mtu_match else None,
                         "sdp": sdp_match.group(1) if sdp_match else None,
-                        "velocidade": velocidade_match.group(1) if velocidade_match else None
+                        "velocidade": velocidade_match.group(1) if velocidade_match else None,
+                        "descricao_sdp": descricao_sdp,
+                        "ip_sdp": ip_sdp
                     })
+
 # BATERIA
-            elif descricao and "UNI" in descricao.group(1) and ("BATERIA" in descricao.group(1) or "LITIO" in descricao.group(1)):
+            elif descricao and "UNI" in descricao.group(1) and ("LITIO" in descricao.group(1) or "FONTE" in descricao.group(1) or "PWR" in descricao.group(1)):
                 porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
                 speed = re.search(r'\s*speed\s+(\S+)', bloco)
                 
@@ -352,6 +365,13 @@ def extrair_dados(backup):
 #    for ip in twamp:
 #        print(f"TWAMP - {ip}")
 #
+#    print("\n=== PTP Sync-E ===")
+#    if resultado["ptp"]:
+#        for i, porta in enumerate(resultado["ptp"], start=1):
+#            print(f"Ref{i} -> Porta: {porta}")
+#    else:
+#        print("Nenhuma porta PTP encontrada.")
+#
 ##NNI FO
 #    for item in fibra:
 #        print("\n=== Interface Física FO ===")
@@ -447,9 +467,12 @@ def extrair_dados(backup):
 #                print(f"PW           : {ep['epipe']}")
 #                print(f"Descrição    : {ep['descricao']}")
 #                print(f"MTU          : {ep['mtu']}")
-#                print(f"SDP          : {ep['sdp'] if ep['sdp'] else '-'}")
 #                print(f"Vlan         : {ep['vlan']}")
 #                print(f"Velocidade   : {ep['velocidade'] if ep['velocidade'] else '-'}")
+#                print(f"SDP          : {ep['sdp'] if ep['sdp'] else '-'}")
+#                print(f"Desc SDP     : {ep['descricao_sdp'] if ep['descricao_sdp'] else '-'}")
+#                print(f"IP SDP       : {ep['ip_sdp'] if ep['ip_sdp'] else '-'}")
+#
 #
 ##ROUTER STATIC
 #print(f"\n[RESUMO] Total de rotas estáticas: {len(rotas_estaticas)}")

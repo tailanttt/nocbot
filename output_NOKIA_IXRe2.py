@@ -2637,6 +2637,7 @@ configure service vprn {bgp["ddd"]}1 name "IUB" customer 21 create
           no shutdown
        exit
     exit
+    no shutdown
 exit
 #
 configure service vprn {bgp["ddd"]}103 name "ABIS" customer 21 create
@@ -2652,6 +2653,7 @@ configure service vprn {bgp["ddd"]}103 name "ABIS" customer 21 create
            no shutdown
         exit
     exit
+    no shutdown
 exit
 #
 configure service vprn {bgp["ddd"]}95 name "S1" customer 21 create
@@ -2667,8 +2669,26 @@ configure service vprn {bgp["ddd"]}95 name "S1" customer 21 create
           no shutdown
        exit
     exit
+    no shutdown
 exit
 #
+configure service vprn {bgp["ddd"]}7281 name "{bgp["ddd"]}7281" customer 21 create
+    bgp-ipvpn
+        mpls
+            vrf-import "GERL3_EBT_CLARO_VPN_IMPORT"
+            vrf-export "GERL3_EBT_CLARO_VPN_EXPORT"
+            route-distinguisher {bgp["processo"]}:7282
+            auto-bind-tunnel
+                resolution-filter
+                    ldp
+                exit
+                resolution-filter
+            exit
+            no shutdown
+       exit
+    exit
+    no shutdown
+exit
 """
     if rotas_estaticas:
         script+= """
@@ -2698,6 +2718,7 @@ configure system sync-if-timing
 
     port_new_old = [(nova, fibra[i]["porta"]) for i, nova in enumerate(portas_fo)]
     port_new_old += [(nova, mwrot[i]["porta"]) for i, nova in enumerate(portas_mwrot)]
+    print (port_new_old)
     if ptp:  # só entra se houver referências
         script += "\n    ref-order ref1 ref2 ptp gnss"
         for i, porta_antiga in enumerate(ptp):
@@ -3177,18 +3198,6 @@ exit all
 #====================================================================
 #
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "ABIS" customer 21 create
-    autonomous-system 650{bgp["ddd"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-ABIS"
-            vrf-export "VPN_EXPORT_VPN-ABIS"
-            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
-            auto-bind-tunnel
-               resolution any
-            exit
-            no shutdown
-        exit
-    exit
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
@@ -3216,18 +3225,6 @@ exit all
 #====================================================================
 #
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "IUB" customer 21 create
-    autonomous-system 650{bgp["ddd"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-DADOS"
-            vrf-export "VPN_EXPORT_VPN-DADOS"
-            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
-            auto-bind-tunnel
-                resolution any
-            exit
-            no shutdown
-        exit
-    exit
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
@@ -3256,18 +3253,6 @@ exit all
 #====================================================================
 
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 create
-    autonomous-system 650{bgp["ddd"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-LTE"
-            vrf-export "VPN_EXPORT_VPN-LTE"
-            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
-            auto-bind-tunnel
-                resolution any
-            exit
-            no shutdown
-        exit
-   exit
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
@@ -3296,18 +3281,6 @@ exit all
 #====================================================================
 #
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "S1" customer 21 create
-    autonomous-system 650{bgp["ddd"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-LTE"
-            vrf-export "VPN_EXPORT_VPN-LTE"
-            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
-            auto-bind-tunnel
-                resolution any
-            exit
-            no shutdown
-        exit
-    exit
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
@@ -3335,18 +3308,6 @@ exit all
 # CONFIGURAÇÃO GERENCIA 61
 #====================================================================
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "GERENCIA" customer 21 create
-    autonomous-system 650{bgp["ddd"]}
-    bgp-ipvpn
-        mpls
-            vrf-import "VPN_IMPORT_VPN-GERENCIA"
-            vrf-export "VPN_EXPORT_VPN-GERENCIA"
-            route-distinguisher 650{bgp["ddd"]}:{interface["vprn"]}
-            auto-bind-tunnel
-               resolution any
-            exit
-            no shutdown
-        exit
-    exit   
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
         address {interface["ip"]}
@@ -3447,6 +3408,150 @@ configure service vprn {bgp["ddd"]}61
 #
 admin save
 #"""
+    if empresarial:
+        script += f"""
+#====================================================================
+# QOS e ROUTE POLICY - EMPRESARIAL
+#====================================================================
+#
+configure qos dot1p-fc-map "499" create
+            default-action fc "af" profile out
+            dot1p 2 fc "af"
+        exit all
+#
+#
+configure qos dscp-fc-map "499" create
+            default-action fc "af"
+            dscp "be" fc "be"
+            dscp "ef" fc "ef"
+            dscp "cs4" fc "l1"
+            dscp "nc1" fc "h1"
+            dscp "af41" fc "l1"
+            dscp "af42" fc "l1"
+            dscp "af43" fc "l1"
+        exit all
+#
+#
+configure qos ingress-classification-policy "499" allow-attachment any create
+            description "TC20_EoMPLS_CIRCUITO_QOS_DEFAULT_IN"
+            dscp-fc-map "499"
+        exit all
+#
+#
+configure qos sap-ingress 499 name "TC20_EoMPLS_CIRCUITO_QOS_DEFAULT_IN" policer-allocation per-fc create
+            description "TC-EoMPLS-CIRCUITO-7250-IXR"
+            ingress-classification-policy "499"
+        exit 
+exit all
+#
+#
+configure router
+        policy-options
+          begin
+            community "GERL3_EBT_CLARO_7281"
+                members "target:65092:7281"
+            community "GERL3_EBT_CLARO_7282"
+                members "target:65092:7282"
+#
+            policy-statement "GERL3_EBT_CLARO_VPN_IMPORT"
+                entry 10
+                    from
+                        protocol bgp-vpn
+                        community "GERL3_EBT_CLARO_7281"
+                    exit
+                    to
+                    exit
+                    action accept
+                    exit
+                exit
+                default-action drop
+                exit
+            policy-statement "GERL3_EBT_CLARO_VPN_EXPORT"
+                entry 10
+                    from
+                        protocol direct
+                    exit
+                    to
+                        protocol bgp-vpn
+                    exit
+                    action accept
+                        community add "GERL3_EBT_CLARO_7282"
+                    exit
+                exit
+                default-action drop
+                exit
+           exit
+        commit
+exit all
+#
+#
+#
+#====================================================================
+# EMPRESARIAL
+#===================================================================="""
+#configure port 1/1/c11
+#        connector
+#            breakout c1-1g
+#        exit
+#        no shutdown
+#exit all
+#
+#
+#configure port 1/1/c11/1
+#        description "UNI|EoMPLS|INTERCONEXAO CLIENTE EMBRATEL"
+#        ethernet
+#            speed 1000
+#            no autonegotiate
+#            mode access
+#            encap-type dot1q
+#            mtu 9212
+#        exit
+#        no shutdown
+#exit all
+##
+##
+#configure service vprn 927281 name "927281" customer 21 create
+#            interface "Gi1/1/c11/1.4000" create
+#                description "UNI|ACESSO|EMBRATEL|DCN|GERENCIA1|SSD555696"
+#                address 2.1.118.117/30
+#                sap 1/1/c11/1:4000 create
+#                    ingress
+#                        qos 499
+#                        aggregate-policer-rate 517 burst default
+#                    exit
+#                exit
+#            exit
+#        exit
+#exit all
+##
+##
+#configure service
+#        sdp 1082 mpls create
+#            description "TO_"
+#            far-end 10.237.0.1
+#            ldp
+#            keep-alive
+#                shutdown
+#            exit
+#            no shutdown
+#        exit
+#        epipe 122780002 name "BABON14-BASDR02-00006" customer 21 create
+#            description "UNI|EoMPLS|SENDAS DISTRIBUIDORA S A|SDR/IP/33902|BLD"
+#            service-mtu 1560
+#            sap 1/1/c15/1:2 create
+#                description "UNI|EoMPLS|SENDAS DISTRIBUIDORA S A|SDR/IP/33902|BLD"
+#                ingress
+#                    qos 499
+#                    aggregate-policer-rate 50500 burst default
+#                exit
+#                no shutdown
+#            exit
+#            spoke-sdp 1082:122780002 create
+#                no shutdown
+#            exit
+#            no shutdown
+#        exit """
+
 # DE PARA
 
     de_para_fo = []
