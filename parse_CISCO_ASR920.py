@@ -55,7 +55,7 @@ def extrair_dados(backup):
     resultado["ptp"] = re.findall(r'clock source (\d+\.\d+\.\d+\.\d+)', backup)
 
 # Interfaces
-    interfaces = re.findall(r'(^interface [\s\S]+?)(?=^interface|\Z)', backup, re.MULTILINE)
+    interfaces = re.findall(r'(^interface[\s\S]+?)(?=\n!\s*\n)', backup, re.MULTILINE)
     
 # NNI FO
     fibra = []
