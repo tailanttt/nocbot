@@ -1874,7 +1874,7 @@ ip vrf forwarding GERENCIA
 ip address {bateria[x]["ip_address"]} {bateria[x]["mask"]}
 pemode media-copper
 negotiation negotiation-auto
-speed speed {'100M' if bateria[x].get('speed') == '100' else f"{str(int(bateria[x].get('speed')) // 1000)}G"}
+speed speed-{'100M' if bateria[x].get('speed') == '100' else f"{str(int(bateria[x].get('speed')) // 1000)}G"}
 no shutdown
 $
 traffic-policy interface {porta_bateria} input TC20_GERENCIA_IN
@@ -2022,10 +2022,13 @@ description {empresarial[x]["servicos"][y]['service_description']}
 mtu {empresarial[x]["servicos"][y].get('mtu', empresarial[x]['mtu'])}
 $
 qos
-interface {porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}"""
+                    if empresarial[x]["servicos"][y].get("service_policy") is not None:
+                        script += f"""
 rate-limit input localport cir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps pir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps conform-action transmit exceed-action drop violate-action drop
-$
-$
+$"""
+
+                    script += f"""
 vlan-configuration
 interface {porta_edd}.{vcid_formatado} 
 qinq internal-vlanid {empresarial[x]["servicos"][y]["dot1q_2"]} external-vlanid {empresarial[x]["servicos"][y]["dot1q_1"]}
@@ -2056,6 +2059,7 @@ traffic-policy-statistics switch on interface {porta_edd}.{vcid_formatado} input
 $
 $                    
 """
+# SERVIÇO COM APENAS UMA DOT1Q
                 elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico":
                     vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
                     script += f"""pw pw{str(empresarial[x]["servicos"][y]['xconnect_vcid'])}
@@ -2065,10 +2069,13 @@ description {empresarial[x]["servicos"][y]['service_description']}
 mtu {empresarial[x]["servicos"][y].get('mtu', empresarial[x]["mtu"])}
 $
 qos
-interface {porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}"""
+                    if empresarial[x]["servicos"][y].get("service_policy") is not None:
+                        script += f"""
 rate-limit input localport cir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps pir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps conform-action transmit exceed-action drop violate-action drop
-$
-$
+$"""
+
+                    script += f"""
 vlan-configuration
 interface {porta_edd}.{vcid_formatado} 
 encapsulation-dot1q {empresarial[x]["servicos"][y]["dot1q"]}

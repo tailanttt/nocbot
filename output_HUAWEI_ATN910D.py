@@ -1145,9 +1145,9 @@ peer CSG-AGG label-route-capability
 peer CSG-AGG advertise-community
 peer CSG-AGG capability-advertise add-path both
 peer CSG-AGG advertise add-path path-number 2"""
-
     for i in range(len(bgp["ips_vizinhos"])):
-        script += f"""peer {bgp["ips_vizinhos"][i]} enable
+        script += f"""
+peer {bgp["ips_vizinhos"][i]} enable
 peer {bgp["ips_vizinhos"][i]} group CSG-AGG"""
     script += f"""
 ipv4-family vpnv4
@@ -1214,20 +1214,20 @@ vpn-instance S1
 quit
 ipv4-family vpn-instance ABIS
 import-route direct
-#
+quit
 ipv4-family vpn-instance GERENCIA
 import-route direct
 {"import-route static" if any(rota["vrf"] == "GERENCIA" for rota in rotas_estaticas) else ""}
-#
+quit
 ipv4-family vpn-instance GERL3_EBT_CLARO
 import-route direct
-#
+quit
 ipv4-family vpn-instance IUB-DADOS
 import-route direct
-#
+quit
 ipv4-family vpn-instance S1
 import-route direct
-#
+quit
 #
 bgp yang-mode enable
 Y
@@ -1585,12 +1585,12 @@ ip address {movel[x]["bdis"][y]["ip_address"]} {movel[x]["bdis"][y]["mask"]}
 statistic enable
 traffic-policy TC20_GERENCIA_MOVEL_IN inbound
 """
-            if movel[x]["bdis"][y]["dhcp"]:
-                script += "dhcp select relay\n"
-                for z in range(len(movel[x]["bdis"][y]["dhcp"])):
-                    script += f"ip relay address {movel[x]["bdis"][y]["dhcp"][z]}\n"
-                script += f"""ip relay source-ip-address {movel[x]["bdis"][y]["ip_address"]} vpn-instance GERENCIA\n"""
-            script += f"""qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if  "Ten" in movel[x]["interface"] else "1" }G_OUT outbound
+                if movel[x]["bdis"][y]["dhcp"]:
+                    script += "dhcp select relay\n"
+                    for z in range(len(movel[x]["bdis"][y]["dhcp"])):
+                        script += f"ip relay address {movel[x]["bdis"][y]["dhcp"][z]}\n"
+                        script += f"""ip relay source-ip-address {movel[x]["bdis"][y]["ip_address"]} vpn-instance GERENCIA\n"""
+                    script += f"""qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if  "Ten" in movel[x]["interface"] else "1" }G_OUT outbound
 undo shutdown
 #
 """
@@ -1616,7 +1616,7 @@ classifier TC20_GERENCIA_IN behavior TC20_GERENCIA_IN precedence 2
     for x in range(len(bateria)):
         porta_bateria = 5 if x == 0 else portas.pop(0)
         portas_bateria. append(porta_bateria)
-        script += f"""interface = bateria[x]["interface"]
+        script += f"""
 interface GigabitEthernet0/2/{porta_bateria}
 speed {bateria[x]["speed"]}
 description {bateria[x]["description"]}
@@ -2236,11 +2236,13 @@ save
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
-    return script, banner, banner_roteador
 
-# Salva o script final
+
+## Salva o script final
 #    with open(f"scripts/{hostname}_HUAWEI_ATN910D.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(script)
 #
 #    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
+
+    return script, banner, banner_roteador
 
