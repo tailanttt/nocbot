@@ -1049,25 +1049,6 @@ address-family ipv4 mdt
         script += f"""neighbor {bgp["ips_vizinhos"][i]} activate
 neighbor {bgp["ips_vizinhos"][i]} send-community
 """
-    script += f"""$
-address-family ipv4 vrf GERL3_EBT_CLARO
-redistribute connected
-$
-address-family ipv4 vrf GERENCIA
-redistribute connected
-{"redistribute static" if any(rota["vrf"] == "GERENCIA" for rota in rotas_estaticas) else ""}
-$
-address-family ipv4 vrf ABIS
-redistribute connected
-$
-address-family ipv4 vrf IUB-DADOS
-redistribute connected
-$
-address-family ipv4 vrf S1
-redistribute connected
-$
-$
-"""
 #Rota estática
     if rotas_estaticas:
         script += """$====================================================================
@@ -1189,7 +1170,29 @@ $
 $
 """
 #QOS MOVEL
-    script += f"""$====================================================================
+    if movel:
+        script += f"""$====================================================================
+$ BGP - SERVICO MOVEL
+$====================================================================
+router bgp {bgp["processo"]}
+address-family ipv4 vrf GERL3_EBT_CLARO
+redistribute connected
+$
+address-family ipv4 vrf GERENCIA
+redistribute connected
+{"redistribute static" if any(rota["vrf"] == "GERENCIA" for rota in rotas_estaticas) else ""}
+$
+address-family ipv4 vrf ABIS
+redistribute connected
+$
+address-family ipv4 vrf IUB-DADOS
+redistribute connected
+$
+address-family ipv4 vrf S1
+redistribute connected
+$
+$
+$====================================================================
 $ QoS 2G
 $====================================================================
 $
@@ -2343,10 +2346,10 @@ $
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
-    return script
-
+    
 # Salva o script final
 #    with open(f"scripts/{hostname}_ZTE_6120H.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(script)
 #
 #    print(f"✅ Script gerado com sucesso para {hostname}_ZTE_6120H.")
+    return script

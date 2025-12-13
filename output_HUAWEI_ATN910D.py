@@ -1197,11 +1197,33 @@ peer {bgp["ips_vizinhos"][i]} enable
 Y
 peer {bgp["ips_vizinhos"][i]} group CSG-AGG"""
 
-    script += f"""
+    script+="""
 quit
+bgp yang-mode enable
+Y
+#
+#
+"""
+#Rota estática
+    if rotas_estaticas:
+        script += """$====================================================================
+$ ROTAS ESTATICAS
+$====================================================================
+"""
+        for rota in rotas_estaticas:
+            if rota["vrf"]:
+                script += f"""ip route vrf {rota["vrf"]} {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
+"""
+            else:
+                script += f"""ip route {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
+"""
+    if movel:
+        script +=f"""
+#
 #========================================
 # BGP - SERVICO MOVEL
 #========================================
+bgp {bgp["processo"]}
 vpn-instance ABIS
 quit
 vpn-instance GERENCIA
@@ -1229,25 +1251,6 @@ ipv4-family vpn-instance S1
 import-route direct
 quit
 #
-bgp yang-mode enable
-Y
-#
-#
-"""
-#Rota estática
-    if rotas_estaticas:
-        script += """$====================================================================
-$ ROTAS ESTATICAS
-$====================================================================
-"""
-        for rota in rotas_estaticas:
-            if rota["vrf"]:
-                script += f"""ip route vrf {rota["vrf"]} {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
-"""
-            else:
-                script += f"""ip route {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
-"""
-    script +="""#
 #====================================================================
 # QoS 2G ABIS
 #====================================================================
