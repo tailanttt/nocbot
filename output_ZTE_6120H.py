@@ -14,20 +14,13 @@ def gerar_script(
     movel,
     bateria,
     empresarial,
-):
-#$ ========================================
-#$ Grupos de portas ZTE
-#$ =======================================
-#$ 11 e 12 - 1G ou 10Gb
-#$ 13 e 14 - 1G ou 10Gb
-#$ 15 e 16 - 1G ou 10Gb
-#$ 17 a 20 - 1G ou 10Gb
-#$ 21 a 24 - 1G ou 10Gb
-#$ 25 a 32 - 10Gb
-#$ 34 e 36 - 100Gb
-#$    
-# Variáveis globais de portas
-    portas1g = ['xgei-1/1/0/1', 
+):  
+    portas_fo = []
+    portas_mwrot = []
+    portas_movel = []
+    portas_edd = []
+    portas_bateria = []
+    portas1 = ['xgei-1/1/0/1', 
                 'xgei-1/1/0/2', 
                 'xgei-1/1/0/3', 
                 'xgei-1/1/0/4',  
@@ -47,22 +40,31 @@ def gerar_script(
                 'xxvgei-1/1/0/21',
                 'xxvgei-1/1/0/22',
                 'xxvgei-1/1/0/23',
-                'xxvgei-1/1/0/24',]
-    
-    portas10g = ['xxvgei-1/1/0/25',
-                 'xxvgei-1/1/0/26',
-                 'xxvgei-1/1/0/27',
-                 'xxvgei-1/1/0/28',
-                 'xxvgei-1/1/0/29',
-                 'xxvgei-1/1/0/30',
-                 'xxvgei-1/1/0/31',
-                 'xxvgei-1/1/0/32',]
-                 
-    portas_fo = []
-    portas_mwrot = []
-    portas_movel = []
-    portas_edd = []
-    portas_bateria = []
+                'xxvgei-1/1/0/24']
+        
+    portas10 = ['xxvgei-1/1/0/25',
+                'xxvgei-1/1/0/26',
+                'xxvgei-1/1/0/27',
+                'xxvgei-1/1/0/28',
+                'xxvgei-1/1/0/29',
+                'xxvgei-1/1/0/30',
+                'xxvgei-1/1/0/31',
+                'xxvgei-1/1/0/32']
+                    
+    portas100 = ['cgei-1/1/0/33',
+                'cgei-1/1/0/34',
+                'cgei-1/1/0/35',
+                'cgei-1/1/0/36']
+#$ ========================================
+#$ Grupos de portas ZTE
+#$ =======================================
+#$ 11 e 12 - 1G ou 10Gb
+#$ 13 e 14 - 1G ou 10Gb
+#$ 15 e 16 - 1G ou 10Gb
+#$ 17 a 20 - 1G ou 10Gb
+#$ 21 a 24 - 1G ou 10Gb
+#$ 25 a 32 - 10Gb
+#$ 34 e 36 - 100Gb                
     
     script = f"""$    
 $ ========================================
@@ -708,7 +710,7 @@ $ =======================================
 $
 """
     for i in range(len(fibra)):
-            porta_fo = (portas10g if fibra[i].get('speed') == '10000' else portas1g).pop(0 if fibra[i].get('speed') == '10000' else -1)
+            porta_fo = (portas10 if fibra[i].get('speed') == '10000' else portas1).pop(0 if fibra[i].get('speed') == '10000' else -1)
             portas_fo.append(porta_fo)
             if "description_bdi" in fibra[i]:
                 script += f"""interface {porta_fo}
@@ -769,10 +771,10 @@ police cir {mwrot[i]["bandwidth"]} pir {mwrot[i]["bandwidth"]}
 service-policy PHB20_{'10' if mwrot[i].get('speed') == '10000' else '1'}G_OUT
 $
 $
-$
-"""
+$"""
     if any(i["bnm_ativo"] for i in mwrot):
-            script += f"""$ ========================================
+            script += f"""
+$ ========================================
 $ QOS RADIO - COM BNM
 $ =======================================
 policy-map PHB20_BNM_1G_OUT
@@ -785,24 +787,24 @@ policy-map PHB20_BNM_10G_OUT
 class child
 police cir percentage 95
 service-policy PHB20_10G_OUT
-$
-"""
+$"""
     if mwrot:
-        script += f"""$========================================
+        script += f"""
+$========================================
 $ INTERFACES NNI RADIO
 $=======================================
-$
-"""
+$"""
         contadorBNM = 0  # Inicializa o contador
         for x in range(len(mwrot)):
-            porta_mwrot = (portas10g if mwrot[i].get('speed') == '10000' else portas1g).pop(0 if mwrot[i].get('speed') == '10000' else -1)
+            porta_mwrot = (portas10 if mwrot[x].get('speed') == '10000' else portas1).pop(0 if mwrot[x].get('speed') == '10000' else -1)
             portas_mwrot.append(porta_mwrot)
 
 #Se tiver dot1q vai adicionar o IP na logica
 
             if mwrot[x]["porta_logica"]:
                 if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
-                    script += f"""interface {porta_mwrot}
+                    script += f"""
+interface {porta_mwrot}
 description {mwrot[x]["porta_logica"]["description"]}
 mtu {mwrot[x]["mtu"]}
 ip mtu {mwrot[x]["porta_logica"]["mtu"]}
@@ -832,15 +834,15 @@ traffic-statistics enable
 $
 $
 $
-service-policy {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} output PHB20_BNM_{ '10' if mwrot[i].get('speed') == '10000' else '1'}G_OUT
+service-policy {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} output PHB20_BNM_{ '10' if mwrot[x].get('speed') == '10000' else '1'}G_OUT
 traffic-policy interface {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} input PHB20_IN
 $
 qos-statistics switch on {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} output
 traffic-policy-statistics switch on interface {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} input
-$
-"""            
+$"""            
                 else:
-                    script += f"""interface {porta_mwrot}
+                    script += f"""
+interface {porta_mwrot}
 description {mwrot[x]["porta_logica"]["description"]}
 mtu {mwrot[x]["mtu"]}
 ip address {mwrot[x]["porta_logica"]["ip_address"]} {mwrot[x]["porta_logica"]["mask"]}
@@ -857,16 +859,14 @@ traffic-statistics enable
 $
 $
 $
-service-policy {porta_mwrot} output PHB20_BNM_{ '10' if mwrot[i].get('speed') == '10000' else '1'}G_OUT
+service-policy {porta_mwrot} output PHB20_BNM_{ '10' if mwrot[x].get('speed') == '10000' else '1'}G_OUT
 traffic-policy interface {porta_mwrot} input PHB20_IN
 $
 qos-statistics switch on {porta_mwrot} output
-traffic-policy-statistics switch on interface {porta_mwrot} input
- 
-
-"""
+traffic-policy-statistics switch on interface {porta_mwrot} input"""
             if mwrot[x]["porta_gerencia"]:
-                script += f"""interface {porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
+                script += f"""
+interface {porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
 description {mwrot[x]["porta_gerencia"]["description"]}
 ip vrf forwarding GERENCIA
 ip address {mwrot[x]["porta_gerencia"]["ip_address"]} {mwrot[x]["porta_gerencia"]["mask"]}
@@ -883,13 +883,13 @@ intf-statistics
 interface {porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
 traffic-statistics enable
 $
-$                
-"""
+$"""
             if mwrot[x]["bnm_ativo"]:
                 contadorBNM += 1
                 if mwrot[x]["porta_logica"]:
                     if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
-                        script += f"""$========================================
+                        script += f"""
+$========================================
 $ BNM   
 $=======================================
 cfm
@@ -907,11 +907,11 @@ set mep {mwrot[x]["bridge_domains"][0]} bnm service-policy-adjust enable
 set mep {mwrot[x]["bridge_domains"][0]} ccm-send enable
 set mep {mwrot[x]["bridge_domains"][0]} client-level 4
 $
-$
-"""
+$"""
                     else:
 # Interface física (sem dot1q)
-                        script += f"""$========================================
+                        script += f"""
+$========================================
 $ BNM   
 $=======================================
 cfm
@@ -929,9 +929,9 @@ set mep {mwrot[x]["bridge_domains"][0]} bnm service-policy-adjust enable
 set mep {mwrot[x]["bridge_domains"][0]} ccm-send enable
 set mep {mwrot[x]["bridge_domains"][0]} client-level 4
 $
-$
-"""
-    script += f"""$========================================
+$"""
+    script += f"""
+$========================================
 $ OSPF
 $========================================
 $
@@ -941,23 +941,22 @@ timers throttle spf 10 100 1000
 timers throttle lsa-arrival 0 25 1000
 timers throttle lsa 1 25 1000
 timers lsa-group-pacing 10
-passive-interface default
-"""
+passive-interface default"""
     for x in range(len(portas_fo)):
-        script += f"""passive-interface {portas_fo[x]} disable
-"""
+        script += f"""
+passive-interface {portas_fo[x]} disable"""
     for x in range(len(portas_mwrot)):
         if mwrot[x]["porta_logica"]:
             mwrot[x]["porta_logica"]["bdi"] = mwrot[x]["porta_logica"]["bdi"]
             if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
 # Subinterface com dot1q
-                    script += f"""passive-interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]} disable
-"""
+                    script += f"""passive-interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]} disable"""
             else:
 # Interface física (sem dot1q)
-                script += f"""passive-interface {portas_mwrot[x]} disable
-"""
-    script += f"""max-metric router-lsa on-startup timeout 240
+                script += f"""
+passive-interface {portas_mwrot[x]} disable"""
+    script += f"""
+max-metric router-lsa on-startup timeout 240
 ispf
 auto-cost reference-bandwidth 100000
 nsf
@@ -971,41 +970,41 @@ authentication message-digest
 mpls traffic-eng
 mpls ldp sync
 interface loopback100
-$
-"""
+$"""
     for x in range(len(portas_fo)):
-        script += f"""interface {portas_fo[x]}
+        script += f"""
+interface {portas_fo[x]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
 message-digest-key 1 md5 BaCkBoNeOSPF!#@$
 cost {fibra[x]["ospf_cost"]}
 mtu-ignore
-$
-"""
+$"""
     for x in range(len(portas_mwrot)):
         if mwrot[x]["porta_logica"]:
             mwrot[x]["porta_logica"]["bdi"] = mwrot[x]["porta_logica"]["bdi"]
             if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
 # Subinterface com dot1q
-                    script += f"""interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
+                    script += f"""
+interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
 message-digest-key 1 md5 BaCkBoNeOSPF!#@$
 cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 mtu-ignore
-$
-"""
+$"""
             else:
 # Interface física (sem dot1q)
-                script += f"""interface {portas_mwrot[x]}
+                script += f"""
+interface {portas_mwrot[x]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
 message-digest-key 1 md5 BaCkBoNeOSPF!#@$
 cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 mtu-ignore
-$
-"""
-    script += f"""$ ========================================
+$"""
+    script += f"""
+$ ========================================
 $ BGP
 $ =======================================
 route-map MARCA-COMMUNITY-REGIAO-IPV4 permit 10
@@ -1028,12 +1027,12 @@ neighbor CSG-AGG send-community
 neighbor CSG-AGG send-label
 neighbor CSG-AGG update-source loopback100
 neighbor CSG-AGG password BaCkBoNeBGP!#@$
-neighbor CSG-AGG tracking
-"""
+neighbor CSG-AGG tracking"""
     for i in range(len(bgp["ips_vizinhos"])):
-        script += f"""neighbor {bgp["ips_vizinhos"][i]} peer-group CSG-AGG
-"""
-    script += f"""address-family vpnv4
+        script += f"""
+neighbor {bgp["ips_vizinhos"][i]} peer-group CSG-AGG"""
+    script += f"""
+address-family vpnv4
 bgp nexthop recursive-lookup default-route disable
 neighbor CSG-AGG activate
 neighbor CSG-AGG send-community
@@ -1043,25 +1042,24 @@ bgp nexthop recursive-lookup default-route disable
 neighbor CSG-AGG activate
 neighbor CSG-AGG send-community
 $
-address-family ipv4 mdt
-"""
+address-family ipv4 mdt"""
     for i in range(len(bgp["ips_vizinhos"])):
-        script += f"""neighbor {bgp["ips_vizinhos"][i]} activate
-neighbor {bgp["ips_vizinhos"][i]} send-community
-"""
+        script += f"""
+neighbor {bgp["ips_vizinhos"][i]} activate
+neighbor {bgp["ips_vizinhos"][i]} send-community"""
 #Rota estática
     if rotas_estaticas:
-        script += """$====================================================================
-$ ROTAS ESTATICAS
+        script += """
 $====================================================================
-"""
+$ ROTAS ESTATICAS
+$===================================================================="""
         for rota in rotas_estaticas:
             if rota["vrf"]:
-                script += f"""ip route vrf {rota["vrf"]} {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
-"""
+                script += f"""
+ip route vrf {rota["vrf"]} {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}"""
             else:
-                script += f"""ip route {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}
-"""
+                script += f"""
+ip route {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}"""
     script += f"""$
 $ ========================================
 $ MPLS / MULTICAST / TRAFFIC-EN
@@ -1162,7 +1160,7 @@ $
             if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
 # Subinterface com dot1q
                     script += f"""interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
-                    $
+$
 """
             else:
 # Interface física (sem dot1q)
@@ -1654,7 +1652,7 @@ $
 $
 """
     for x in range(len(movel)):
-        porta_movel = (portas10g if movel[x].get('speed') == '10000' else portas1g).pop(0)
+        porta_movel = (portas10 if movel[x].get('speed') == '10000' else portas1).pop(0)
         portas_movel.append(porta_movel)
         script += f"""$====================================================================
 $ SERVIÇOS MOVEIS INTERFACE FISICA
@@ -1868,7 +1866,7 @@ $ BATERIA
 $ ====================================================================
 """
         for x in range(len(bateria)):
-            porta_bateria = "xgei-1/1/0/5" if x == 0 else portas1g.pop(0)
+            porta_bateria = "xgei-1/1/0/5" if x == 0 else portas1.pop(0)
             portas_bateria. append(porta_bateria)
             script += f"""interface {porta_bateria}
 description {bateria[x]["description"]}
@@ -1977,7 +1975,7 @@ $
 $
 """
         for x in range (len(empresarial)):  
-            porta_edd = (portas10g if empresarial[i].get('speed') == '10000' else portas1g).pop(0)
+            porta_edd = (portas10 if empresarial[i].get('speed') == '10000' else portas1).pop(0)
             portas_edd.append(porta_edd)
 # Interface física
             script += f"""interface {porta_edd}
@@ -2346,7 +2344,7 @@ $
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
-    
+   
 # Salva o script final
 #    with open(f"scripts/{hostname}_ZTE_6120H.txt", 'w', encoding='utf-8') as arquivo:
 #        arquivo.write(script)

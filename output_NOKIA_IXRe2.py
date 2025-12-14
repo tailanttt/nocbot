@@ -18,7 +18,14 @@ def gerar_script(
     rotas_estaticas
 ):
 
-# Variáveis globais de portas
+
+    portas_fo = []
+    portas_mwrot = []
+    portas_movel = []
+    portas_edd = []
+    portas_bateria = []
+    bnm_id = 0
+
     portas10 = ["1/1/c5",
                 "1/1/c6",
                 "1/1/c7",
@@ -43,12 +50,7 @@ def gerar_script(
                 "1/1/c27",
                 "1/1/c28"]
     portas100 =["1/1/c1","1/1/c2","1/1/c3","1/1/c4"]
-    portas_fo = []
-    portas_mwrot = []
-    portas_movel = []
-    portas_edd = []
-    portas_bateria = []
-    bnm_id = 0
+
     script = f"""
 #--------------------------------------------------
 # Criação do Diretório de Rollback

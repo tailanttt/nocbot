@@ -15,14 +15,36 @@ def gerar_script(
     bateria,
     empresarial,
 ):
-    
-# Variáveis globais de portas
-    portas = [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     portas_fo = []
     portas_mwrot = []
     portas_movel = []
     portas_edd = []
     portas_bateria = []
+    # Variáveis globais de portas
+    portas10 = [
+    'GigabitEthernet 0/2/0',
+    'GigabitEthernet 0/2/1',
+    'GigabitEthernet 0/2/2',
+    'GigabitEthernet 0/2/3',
+    'GigabitEthernet 0/2/4',
+    'GigabitEthernet 0/2/6',
+    'GigabitEthernet 0/2/7',
+    'GigabitEthernet 0/2/8',
+    'GigabitEthernet 0/2/9',
+    'GigabitEthernet 0/2/10',
+    'GigabitEthernet 0/2/11',
+    'GigabitEthernet 0/2/12',
+    'GigabitEthernet 0/2/13',
+    'GigabitEthernet 0/2/15',
+    'GigabitEthernet 0/2/16',
+    'GigabitEthernet 0/2/17',
+    'GigabitEthernet 0/2/18',
+    'GigabitEthernet 0/2/19',
+    'GigabitEthernet 0/2/20',
+    'GigabitEthernet 0/2/21',
+    'GigabitEthernet 0/2/22',
+    'GigabitEthernet 0/2/23']
+    portas100 = ['100GE0/2/24','100GE0/2/25']
     
     banner = (
         "*****************************ATENCAO**********************************\n"
@@ -777,10 +799,10 @@ color green low-limit 50 high-limit 90 discard-percentage 100
 # NNI padrão 0/2/20 ao 23 FIBRA
 """
     for i in range(len(fibra)):
-        porta_fo = portas.pop()
+        porta_fo = portas10.pop()
         portas_fo.append(porta_fo)
         if "description_bdi" in fibra[i]:
-            script += f"""interface GigabitEthernet 0/2/{porta_fo}
+            script += f"""interface {porta_fo}
 description {fibra[i]["description"]}
 mtu {fibra[i]["mtu"]}
 control-flap
@@ -788,7 +810,7 @@ lldp enable
 undo dcn
 undo shutdown
 #
-interface GigabitEthernet 0/2/{porta_fo}.{fibra[i]["bdi"]}
+interface {porta_fo}.{fibra[i]["bdi"]}
 description {fibra[i]['description_bdi']}
 ip address {fibra[i]['ip_address']} {fibra[i]['mask']}
 pim sm
@@ -818,7 +840,7 @@ undo shutdown
 """
 
         else:
-            script += f"""interface GigabitEthernet 0/2/{porta_fo}
+            script += f"""interface {porta_fo}
 description {fibra[i]['description']}
 mtu {fibra[i]['mtu']}
 control-flap
@@ -880,7 +902,7 @@ user-queue cir {mwrot[i]["bandwidth"]} pir {mwrot[i]["bandwidth"]} flow-queue CL
 #"""
 
 
-        if any(i["bnm_ativo"] for i in mwrot):
+    if any(i["bnm_ativo"] for i in mwrot):
             script +=f"""
 #========================================
 # QOS RADIO - BNM
@@ -950,7 +972,7 @@ user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT 
         contadorBNM = 0  # Inicializa o contador
         for x in range(len(mwrot)):
             
-            porta_mwrot = portas.pop()
+            porta_mwrot = portas10.pop()
             portas_mwrot.append(porta_mwrot)
 
 #Se tiver dot1q vai adicionar o IP na logica
@@ -958,7 +980,7 @@ user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT 
             if mwrot[x]["porta_logica"]:
                 if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
                     script += f"""#
-interface GigabitEthernet 0/2/{porta_mwrot}
+interface {porta_mwrot}
 description {mwrot[x]["description"]}
 mtu {mwrot[x]["mtu"]}
 control-flap
@@ -966,7 +988,7 @@ lldp enable
 undo dcn
 undo shutdown
 #
-interface GigabitEthernet 0/2/{porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]}
+interface {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]}
 description {mwrot[x]["porta_logica"]["description"]}
 mtu {mwrot[x]["porta_logica"]["mtu"]}
 vlan-type dot1q {mwrot[x]["porta_logica"]["bdi"]}
@@ -993,7 +1015,7 @@ undo shutdown
 
                 else:
                     script += f"""
-interface GigabitEthernet 0/2/{porta_mwrot}
+interface {porta_mwrot}
 description {mwrot[x]["porta_logica"]["description"]}
 mtu {mwrot[x]["porta_logica"]["mtu"]}
 ip address {mwrot[x]["porta_logica"]["ip_address"]} {mwrot[x]["porta_logica"]["mask"]}
@@ -1019,13 +1041,13 @@ undo shutdown
 #
 """
             if mwrot[x]["porta_gerencia"]:
-                script += f"""interface GigabitEthernet 0/2/{porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
+                script += f"""interface {porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
 description {mwrot[x]["porta_gerencia"]["description"]}
 vlan-type dot1q {mwrot[x]["porta_gerencia"]["dot1q"]}
 ip address {mwrot[x]["porta_gerencia"]["ip_address"]} {mwrot[x]["porta_gerencia"]["mask"]}
 ip binding vpn-instance GERENCIA
 traffic-policy TC20_GERENCIA_MOVEL_IN inbound
-qos-profile TC20_GERENCIA_MOVEL_SHAPE_qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if mwrot[x]["interface"].startswith("Ten") else "1"}G_OUTG_OUT outbound
+qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if mwrot[x]["speed"] == "10000" else "1"}G_OUTG_OUT outbound
 statistic enable
 undo shutdown
 #
@@ -1038,7 +1060,7 @@ undo shutdown
 # BNM
 #=======================================
 ma ma{contadorBNM}
-mep mep-id {contadorBNM} interface GigabitEthernet0/2/{porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} vlan {mwrot[x]["porta_logica"]["bdi"]} outward
+mep mep-id {contadorBNM} interface {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} vlan {mwrot[x]["porta_logica"]["bdi"]} outward
 mep ccm-send mep-id {contadorBNM} enable
 mep mep-id {contadorBNM} eth-bn receive enable mode port-vlan
 #
@@ -1049,7 +1071,7 @@ mep mep-id {contadorBNM} eth-bn receive enable mode port-vlan
 # BNM
 #=======================================
 ma ma{contadorBNM}
-mep mep-id {contadorBNM} interface GigabitEthernet0/2/{porta_mwrot} outward
+mep mep-id {contadorBNM} interface {porta_mwrot} outward
 mep ccm-send mep-id {contadorBNM} enable
 mep mep-id {contadorBNM} eth-bn receive enable
 #
@@ -1066,18 +1088,18 @@ silent-interface all
 Y
 """
     for x in range(len(portas_fo)):
-        script += f"""undo silent-interface Gi0/2/{portas_fo[x]}
+        script += f"""undo silent-interface {portas_fo[x]}
 """
     for x in range(len(portas_mwrot)):
         if mwrot[x]["porta_logica"]:
             mwrot[x]["porta_logica"]["bdi"] = mwrot[x]["porta_logica"]["bdi"]
             if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
 # Subinterface com dot1q
-                    script += f"""undo silent-interface Gi0/2/{portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
+                    script += f"""undo silent-interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
 """
             else:
 # Interface física (sem dot1q)
-                script += f"""undo silent-interface Gi0/2/{portas_mwrot[x]}
+                script += f"""undo silent-interface {portas_mwrot[x]}
 """
     script += f"""opaque-capability enable
 stub-router on-startup 300 external-lsa summary-lsa
@@ -1161,7 +1183,6 @@ peer CSG-AGG enable
 peer CSG-AGG advertise-community
 peer CSG-AGG capability-advertise add-path both
 peer CSG-AGG advertise add-path path-number 2"""
-
     for i in range(len(bgp["ips_vizinhos"])):
         script += f"""
 peer {bgp["ips_vizinhos"][i]} enable
@@ -1202,11 +1223,11 @@ quit
 bgp yang-mode enable
 Y
 #
-#
-"""
+#"""
 #Rota estática
     if rotas_estaticas:
-        script += """$====================================================================
+        script += """
+$====================================================================
 $ ROTAS ESTATICAS
 $====================================================================
 """
@@ -1502,7 +1523,7 @@ user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT 
 #
 """
     for x in range(len(movel)):        
-        porta_movel = portas.pop(0)
+        porta_movel = portas10.pop(0)
         portas_movel.append(porta_movel)
         script += f"""#====================================================================
 # SERVIÇOS MOVEIS INTERFACE FISICA
@@ -1614,20 +1635,19 @@ classifier TC20_GERENCIA_IN behavior TC20_GERENCIA_IN precedence 2
 #
 #========================================
 # BATERIA
-#========================================
-"""
+#========================================"""
     for x in range(len(bateria)):
-        porta_bateria = 5 if x == 0 else portas.pop(0)
+        porta_bateria = "GigabitEthernet 0/2/5" if x == 0 else portas10.pop(0)
         portas_bateria. append(porta_bateria)
         script += f"""
-interface GigabitEthernet0/2/{porta_bateria}
+interface {porta_bateria}
 speed {bateria[x]["speed"]}
+mtu {bateria[x]["mtu"]}
 description {bateria[x]["description"]}
 ip binding vpn-instance GERENCIA
 ip address {bateria[x]["ip_address"]} {bateria[x]["mask"]}
 ip relay address 10.119.68.18
 ip relay address 10.119.68.19
-mtu {bateria[x]["mtu"]}
 dhcp select relay
 traffic-policy TC20_GERENCIA_IN inbound
 set flow-stat interval 30
@@ -1635,10 +1655,10 @@ statistic enable
 undo shutdown
 undo lldp enable
 undo dcn
-#
-"""
+#"""
     if empresarial:
-        script += f"""# ====================================================================
+        script += f"""
+# ====================================================================
 # QoS EMPRESARIAL
 # ====================================================================
 #
@@ -1725,15 +1745,15 @@ queue be wfq weight 100
 qos-profile CIRCUITO-512KBPS
 user-queue cir 512 pir 512 flow-queue CIRCUITO-512KBPS inbound
 #
-#
-"""
+#"""
         valores_usados = set()
         for item in empresarial:
             for svc in item.get("servicos", []):
                 valor = svc.get("service_policy")
                 if valor and valor not in valores_usados:
                     valores_usados.add(valor)
-                    script += f"""#
+                    script += f"""
+#
 flow-queue CIRCUITO-{valor}KBPS
 queue be wfq weight 100
 #
@@ -1741,32 +1761,32 @@ queue be wfq weight 100
 qos-profile EoMPLS-CIRCUITO-{valor}KBPS-IN
 user-queue cir {valor} pir {valor} flow-queue CIRCUITO-{valor}KBPS inbound
 #
-#
-"""
-        script += """# ========================================
-# EMPRESARIAL
+#"""
+        script += """
 # ========================================
-"""
+# EMPRESARIAL
+# ========================================"""
 
     for x in range(len(empresarial)):
-        porta_edd = portas.pop(0)
+        porta_edd = portas10.pop(0)
         portas_edd.append(porta_edd)
 
 # Interface física
-        script += f"""interface GigabitEthernet0/2/{porta_edd}
+        script += f"""
+interface GigabitEthernet0/2/{porta_edd}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]['description']}
 undo shutdown
 undo lldp enable
 undo dcn
 statistic enable
-#
-"""
+#"""
 
 # GERENCIA
         for y in range (len(empresarial[x].get("servicos"))):
             if empresarial[x]["servicos"][y].get("tipo_servico") == "gerencia":
-                script += f"""interface GigabitEthernet0/2/{porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
+                script += f"""
+interface GigabitEthernet0/2/{porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]["servicos"][y]['bdi_description']}
@@ -1774,12 +1794,12 @@ ip binding vpn-instance GERL3_EBT_CLARO
 ip address {empresarial[x]["servicos"][y]['ip_address']} {empresarial[x]["servicos"][y]['mask']}
 traffic-policy TC20_GERENCIA_CORP_IN inbound link-layer
 qos-profile CIRCUITO-512KBPS inbound
-#
-"""
+#"""
 # SERVIÇO Q IN Q
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico_q":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
-                script += f"""interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+                script += f"""
+interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
 mtu {empresarial[x]["servicos"][y].get('mtu', empresarial[x]['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
 set flow-stat interval 30
@@ -1789,12 +1809,12 @@ qinq termination pe-vid {empresarial[x]["servicos"][y]["dot1q_1"]} ce-vid {empre
 mpls l2vc {empresarial[x]["servicos"][y]['xconnect_ip']} {empresarial[x]["servicos"][y]['xconnect_vcid']} raw
 qos-profile EoMPLS-CIRCUITO-{empresarial[x]["servicos"][y]['service_policy']}KBPS-IN inbound pe-vid {empresarial[x]["servicos"][y]["dot1q_1"]} ce-vid {empresarial[x]["servicos"][y]["dot1q_2"]}
 traffic-policy TC20_EoMPLS_IN inbound pe-vid {empresarial[x]["servicos"][y]["dot1q_1"]} ce-vid {empresarial[x]["servicos"][y]["dot1q_2"]}
-#
-"""
+#"""
 # SERVIÇO 
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
-                script += f"""interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+                script += f"""
+interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]["servicos"][y].get('mtu', item['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
@@ -1803,9 +1823,9 @@ statistic enable
 traffic-policy TC20_EoMPLS_IN inbound link-layer
 mpls l2vc {empresarial[x]["servicos"][y]['xconnect_ip']} {empresarial[x]["servicos"][y]['xconnect_vcid']} raw
 qos-profile EoMPLS-CIRCUITO-{empresarial[x]["servicos"][y]['service_policy']}KBPS-IN inbound
-#
-"""
-    script += f"""#========================================
+#"""
+    script += f"""
+#========================================
 # PUBLIC KEY
 #========================================
 rsa peer-public-key 10.107.13.15
@@ -2210,36 +2230,35 @@ save
 # NNI FO
     for i in range(len(fibra or [])):
         porta_antiga = fibra[i]['interface']
-        porta_nova = f"GigabitEthernet0/2/{portas_fo[i]}"
+        porta_nova = f"{portas_fo[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - NNI FIBRA\n"
 
 # NNI MW-ROT
     for i in range(len(mwrot or [])):
         porta_antiga = mwrot[i]['interface']
-        porta_nova = f"GigabitEthernet0/2/{portas_mwrot[i]}"
+        porta_nova = f"{portas_mwrot[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - NNI RADIO\n"
 
 # UNI MOVEL
     for i in range(len(movel or [])):
         porta_antiga = movel[i]['interface']
-        porta_nova = f"GigabitEthernet0/2/{portas_movel[i]}"
+        porta_nova = f"{portas_movel[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - UNI MOVEL\n"
 
 # BATERIA
     for i in range(len(bateria or [])):
         porta_antiga = bateria[i]['interface']
-        porta_nova = f"GigabitEthernet0/2/{portas_bateria[i]}"
+        porta_nova = f"{portas_bateria[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - BATERIA LÍTIO\n"
 
 # EMPRESARIAL
     for i in range(len(empresarial or [])):
         porta_antiga = empresarial[i]['interface']
-        porta_nova = f"GigabitEthernet0/2/{portas_edd[i]}"
+        porta_nova = f"{portas_edd[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - EMPRESARIAL\n"
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
-
 
 ## Salva o script final
 #    with open(f"scripts/{hostname}_HUAWEI_ATN910D.txt", 'w', encoding='utf-8') as arquivo:
