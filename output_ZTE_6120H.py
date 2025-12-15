@@ -950,7 +950,8 @@ passive-interface {portas_fo[x]} disable"""
             mwrot[x]["porta_logica"]["bdi"] = mwrot[x]["porta_logica"]["bdi"]
             if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
 # Subinterface com dot1q
-                    script += f"""passive-interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]} disable"""
+                    script += f"""
+passive-interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]} disable"""
             else:
 # Interface física (sem dot1q)
                 script += f"""
@@ -1060,7 +1061,8 @@ ip route vrf {rota["vrf"]} {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"
             else:
                 script += f"""
 ip route {rota["ip_origem"]} {rota["mask"]} {rota["ip_destino"]}"""
-    script += f"""$
+    script += f"""
+$
 $ ========================================
 $ MPLS / MULTICAST / TRAFFIC-EN
 $ =======================================
