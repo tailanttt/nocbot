@@ -18,6 +18,7 @@ def gerar_script(
     rotas_estaticas
 ):
 
+#PENDENCIAS BFD e EMPRESARIAL DHCP GERENCIA61
 
     portas_fo = []
     portas_mwrot = []
@@ -1274,7 +1275,7 @@ exit all
         script += f"""
 configure port {porta_fo}
     connector
-        breakout {int(port["speed"])//1000}g
+        breakout c1-{int(port["speed"])//1000}g
     exit
     no shutdown
 exit all
@@ -1356,7 +1357,9 @@ configure router
             rate max cir max
         exit
         egress-remark-policy "NETWORK-EGRESS"
-    exit
+    exit"""
+                if interface["bfd"]:
+                    script += f"""
     bfd 100 receive 100 multiplier 3
         if-attribute
             delay
@@ -1372,11 +1375,12 @@ configure router
             exit
         exit
         no shutdown
-    exit
+    exit"""
+
+                script += """
 exit all
-#
-#
 #"""
+
     if any(interface.get("gerencia") for item in mwrot for interface in item["interfaces"]):
         script += f"""
 #--------------------------------------------------
@@ -1487,7 +1491,9 @@ configure router
             rate max cir max
         exit
         egress-remark-policy "NETWORK-EGRESS"
-    exit
+    exit"""
+            if interface["bfd"]:
+                script += f"""
     bfd 100 receive 100 multiplier 3
         if-attribute
             delay
@@ -1503,10 +1509,13 @@ configure router
             exit
         exit
         no shutdown
-    exit
+    exit"""
+            
+            script += """
 exit all
 #
 #"""
+
         if interface["gerencia"]: 
             script += f"""
 configure service vprn {bgp["ddd"]}61
@@ -1618,7 +1627,6 @@ configure router ospf
             authentication-key OSPF!#@$"""
             else: 
                 script+= """
-            bfd-enable remain-down-on-failure
             authentication-type password
             authentication-key OSPF!#@$"""
             script += """
@@ -3312,13 +3320,16 @@ exit all
 configure service vprn {bgp["ddd"]}{interface["vprn"]} name "GERENCIA" customer 21 create
     interface "{interface["interface"]}" create
         description "{interface["description"]}"
-        address {interface["ip"]}
+        address {interface["ip"]}"""
+                if interface["dhcp"]:
+                    script += f"""
         dhcp
             no option
             server {interface['dhcp']}
             gi-address {interface["ip"].split("/")[0].strip()}
             no shutdown
-        exit
+        exit"""
+                script += f"""
         sap {porta_movel}/1:{interface["dot1q"]} create
             shutdown
             ingress

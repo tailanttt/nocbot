@@ -1054,24 +1054,16 @@ undo shutdown
 """
             if mwrot[x]["bnm_ativo"]:
                 contadorBNM += 1 
-                if mwrot[x]["porta_logica"]:
-                    if mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]:
-                        script += f"""#========================================
+                script += f"""#========================================
 # BNM
 #=======================================
+cfm md md1 level 7
 ma ma{contadorBNM}
-mep mep-id {contadorBNM} interface {porta_mwrot}.{mwrot[x]["porta_logica"]["bdi"]} vlan {mwrot[x]["porta_logica"]["bdi"]} outward
-mep ccm-send mep-id {contadorBNM} enable
-mep mep-id {contadorBNM} eth-bn receive enable mode port-vlan
-#
-"""
-                    else:
-            # Interface física (sem dot1q)
-                        script += f"""#========================================
-# BNM
-#=======================================
-ma ma{contadorBNM}
-mep mep-id {contadorBNM} interface {porta_mwrot} outward
+{(
+    f"mep mep-id {contadorBNM} interface {porta_mwrot}.{mwrot[x]['porta_logica']['bdi']} vlan {mwrot[x]['porta_logica']['bdi']} outward"
+                if mwrot[x]["porta_logica"] and mwrot[x]["porta_logica"]["bdi"] in mwrot[x]["dot1qs"]
+                else f"mep mep-id {contadorBNM} interface {porta_mwrot} outward"
+)}
 mep ccm-send mep-id {contadorBNM} enable
 mep mep-id {contadorBNM} eth-bn receive enable
 #

@@ -83,13 +83,16 @@ def extrair_dados(backup):
                         dot1q = porta_logica.group(1) if porta_logica and porta_logica.group(1) else None
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
                         descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
-                
+                        bfd_match = re.search(r'^\s*bfd-enable\b', bloco_logico, re.MULTILINE)
+                        bfd_exists = bfd_match is not None
+
                         interfaces_nni.append({
                             "interface": interface,
                             "ip": ip.group(1) if ip else None,
                             "descricao": descricao_logica.group(1) if descricao_logica else None,
                             "porta": porta.group(1) if porta else None,
-                            "dot1q": dot1q
+                            "dot1q": dot1q,
+                            "bfd": bfd_exists
                         })
                 fibra.append({
                     "porta": porta.group(1) if porta else None,
@@ -128,6 +131,8 @@ def extrair_dados(backup):
                     if match_por_porta or match_por_lag:
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
                         descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
+                        bfd_match = re.search(r'^\s*bfd-enable\b', bloco_logico, re.MULTILINE)
+                        bfd_exists = bfd_match is not None
 #GERENCIA
                         for interface_gerencia in blocos_int_gerencia:
                             if porta and porta.group(1) in interface_gerencia:
@@ -149,7 +154,8 @@ def extrair_dados(backup):
                             "descricao": descricao_logica.group(1) if descricao_logica else None,
                             "porta": porta_logica.group(1) if porta_logica else (f"lag-{lag}" if lag else None),                            
                             "dot1q": porta_logica.group(2) if porta_logica else (lag_logico.group(2) if lag_logico else None),
-                            "gerencia": gerencia_mwrot
+                            "gerencia": gerencia_mwrot,
+                            "bfd": bfd_exists
                         })
             
                 mwrot.append({
@@ -201,7 +207,7 @@ def extrair_dados(backup):
                                 "ip": ip.group(1) if ip else None,
                                 "dot1q": porta_match.group(2)
                             }
-# SERVIÇOS EPIPE
+# SERVIÇOS EPIPE EMPRESARIAL
                 blocos_epipe = re.findall(r'^(?: {8}|\t{2})epipe\s+\d+\s+name\s+".*?".*?^(?: {8}|\t{2})exit\b', backup, re.DOTALL | re.MULTILINE)
             
                 for bloco_epipe in blocos_epipe:
