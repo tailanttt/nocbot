@@ -1618,39 +1618,44 @@ configure router ospf
     for port in fibra:
         if port.get("interfaces") and len(port["interfaces"]) > 0:
             script += f"""
-        interface "{port["interfaces"][0]["interface"]}"
-            interface-type point-to-point
-            mtu 1500"""
-            if port["lag"]: 
+            interface "{port["interfaces"][0]["interface"]}"
+                interface-type point-to-point
+                mtu 1500"""
+            if port["lag"]:
                 script += """
-            authentication-type password
-            authentication-key OSPF!#@$"""
-            else: 
-                script+= """
-            authentication-type password
-            authentication-key OSPF!#@$"""
+                authentication-type password
+                authentication-key OSPF!#@$"""
+            else:
+                if port["interfaces"][0].get("bfd"):
+                    script += """
+                bfd-enable remain-down-on-failure"""
+                script += """
+                authentication-type password
+                authentication-key OSPF!#@$"""
             script += """
-            no shutdown
-        exit"""
-
+                no shutdown
+            exit"""
+    
     for port in mwrot:
         if port.get("interfaces") and len(port["interfaces"]) > 0:
             script += f"""
-        interface "{port["interfaces"][0]["interface"]}"
-            interface-type point-to-point
-            mtu 1500"""
-            if port["lag"]: 
+            interface "{port["interfaces"][0]["interface"]}"
+                interface-type point-to-point
+                mtu 1500"""
+            if port["lag"]:
                 script += """
-            authentication-type password
-            authentication-key OSPF!#@$"""
-            else: 
-                script+= """
-            bfd-enable remain-down-on-failure
-            authentication-type password
-            authentication-key OSPF!#@$"""
+                authentication-type password
+                authentication-key OSPF!#@$"""
+            else:
+                if port["interfaces"][0].get("bfd"):
+                    script += """
+                bfd-enable remain-down-on-failure"""
+                script += """
+                authentication-type password
+                authentication-key OSPF!#@$"""
             script += """
-            no shutdown
-        exit"""
+                no shutdown
+            exit"""
     script += """
     exit
     no shutdown
