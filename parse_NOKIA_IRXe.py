@@ -83,7 +83,7 @@ def extrair_dados(backup):
                         dot1q = porta_logica.group(1) if porta_logica and porta_logica.group(1) else None
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
                         descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
-                        bfd_match = re.search(r'^\s*bfd-enable\b', bloco_logico, re.MULTILINE)
+                        bfd_match = re.search(r'\bbfd\b', bloco_logico, re.IGNORECASE)
                         bfd_exists = bfd_match is not None
 
                         interfaces_nni.append({
@@ -131,7 +131,7 @@ def extrair_dados(backup):
                     if match_por_porta or match_por_lag:
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
                         descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
-                        bfd_match = re.search(r'^\s*bfd-enable\b', bloco_logico, re.MULTILINE)
+                        bfd_match = re.search(r'\bbfd\b', bloco_logico, re.IGNORECASE)
                         bfd_exists = bfd_match is not None
 #GERENCIA
                         for interface_gerencia in blocos_int_gerencia:
