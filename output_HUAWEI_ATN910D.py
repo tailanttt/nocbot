@@ -1524,7 +1524,8 @@ interface GigabitEthernet0/2/{porta_movel}
 description {movel[x]["description"]}
 undo shutdown
 undo lldp enable
-undo dcn {"\n" + "speed " + movel[x]["speed"] if movel[x]["speed"] else "" }
+undo dcn 
+{f"speed {movel[x]['speed']}" if movel[x]['speed'] else ""}
 duplex full
 #
 """
