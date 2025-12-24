@@ -1825,7 +1825,7 @@ $
             if movel[x]["bdis"][y]["dhcp"]:
                 script += "ip dhcp relay server group 1\n"
                 for z in range(len(movel[x]["bdis"][y]["dhcp"])):
-                    script +=f"server {z+1} {movel[x]["bdis"][y]["dhcp"][z]} vrf GERENCIA\n"
+                    script += f"server {z+1} {movel[x]['bdis'][y]['dhcp'][z]} vrf GERENCIA\n"
                 script += f"""$       
 dhcp
 enable
