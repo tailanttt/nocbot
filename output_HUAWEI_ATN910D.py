@@ -1605,7 +1605,7 @@ traffic-policy TC20_GERENCIA_MOVEL_IN inbound
                 if movel[x]["bdis"][y]["dhcp"]:
                     script += "dhcp select relay\n"
                     for z in range(len(movel[x]["bdis"][y]["dhcp"])):
-                        script += f"ip relay address {movel[x]["bdis"][y]["dhcp"][z]}\n"
+                        script += f"ip relay address {movel[x]['bdis'][y]['dhcp'][z]}\n"
                         script += f"""ip relay source-ip-address {movel[x]["bdis"][y]["ip_address"]} vpn-instance GERENCIA\n"""
                     script += f"""qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if  "Ten" in movel[x]["interface"] else "1" }G_OUT outbound
 undo shutdown
