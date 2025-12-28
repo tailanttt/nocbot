@@ -1,3 +1,7 @@
+import os 
+from dotenv import load_dotenv 
+load_dotenv()
+
 def gerar_script(
     hostname,
     ip_loopback,
@@ -505,7 +509,7 @@ Y
 ntp-service server source-interface all disable
 ntp-service ipv6 server source-interface all disable
 ntp-service authentication enable
-ntp-service authentication-keyid 6 authentication-mode md5 cipher NTP6%@backbone
+ntp-service authentication-keyid 6 authentication-mode md5 cipher {os.getenv("NTP")}
 ntp-service reliable authentication-keyid 6
 """
     for ip in ntp_ips:
@@ -814,7 +818,7 @@ interface {porta_fo}.{fibra[i]["bdi"]}
 description {fibra[i]['description_bdi']}
 ip address {fibra[i]['ip_address']} {fibra[i]['mask']}
 pim sm
-ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
+ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
 ospf cost {fibra[i]['ospf_cost']}
 ospf network-type p2p
 ospf ldp-sync
@@ -848,7 +852,7 @@ lldp enable
 undo dcn
 ip address {fibra[i]['ip_address']} {fibra[i]['mask']}
 pim sm
-ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
+ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
 ospf cost {fibra[i]['ospf_cost']}
 ospf network-type p2p
 ospf ldp-sync
@@ -994,7 +998,7 @@ mtu {mwrot[x]["porta_logica"]["mtu"]}
 vlan-type dot1q {mwrot[x]["porta_logica"]["bdi"]}
 ip address {mwrot[x]["porta_logica"]["ip_address"]} {mwrot[x]["porta_logica"]["mask"]}
 pim sm
-ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
+ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
 ospf cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 ospf network-type p2p
 ospf ldp-sync
@@ -1023,7 +1027,7 @@ pim sm
 control-flap
 lldp enable
 undo dcn
-ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
+ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
 ospf cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 ospf network-type p2p
 ospf ldp-sync
@@ -1135,7 +1139,7 @@ private-4-byte-as disable
 group CSG-AGG internal
 peer CSG-AGG description PEERS RRs
 peer CSG-AGG connect-interface LoopBack100
-peer CSG-AGG password cipher BaCkBoNeBGP!#@$"""
+peer CSG-AGG password cipher {os.getenv("BGP")}"""
 
     for i in range(len(bgp["ips_vizinhos"])):
         script += f"""
@@ -1968,20 +1972,20 @@ hwtacacs-server authorization 10.108.199.25 secondary
 hwtacacs-server accounting 10.129.199.25
 hwtacacs-server accounting 10.108.199.25 secondary
 hwtacacs-server source-ip {ip_loopback}
-hwtacacs-server shared-key cipher CLAROSECkey$321
+hwtacacs-server shared-key cipher {os.getenv("TACACS")}
 hwtacacs-server timer response-timeout 10
 hwtacacs-server user-name original
 #
 #
 aaa
 user-password password-force-change disable
-local-user root password irreversible-cipher Changeme_123
+local-user root password irreversible-cipher {os.getenv("ROOT")}
 local-user root service-type terminal ssh
 local-user root level 3
 local-user root state block fail-times 3 interval 5
 local-user root ftp-directory cfcard:/
 local-user root user-group manage-ug
-local-user nsvcadm password irreversible-cipher #Hu@We1#CI@ro#
+local-user nsvcadm password irreversible-cipher {os.getenv("NSVCADM")}
 local-user nsvcadm service-type terminal ssh
 local-user nsvcadm level 3
 local-user nsvcadm state block fail-times 3 interval 5
@@ -2121,7 +2125,7 @@ user-interface maximum-vty 21
 #
 user-interface con 0
 authentication-mode aaa
-set authentication password cipher #Hu@We1#Cl@r0#
+set authentication password cipher {os.getenv("NSVCADM")}
 history-command max-size 50
 #
 user-interface vty 0 20

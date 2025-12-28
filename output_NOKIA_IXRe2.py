@@ -1,3 +1,7 @@
+import os 
+from dotenv import load_dotenv 
+load_dotenv()
+
 def gerar_script(
     hostname,
     ip_loopback,
@@ -632,7 +636,7 @@ configure system
             exit
             user "Nokia_Tele"
                 access netconf grpc
-                password "N0k1@_T3l3"
+                password "{os.getenv("NOKIA_TELE")}"
             exit
             snmp
                 community "hLzZnt2IMTNE6JGDGpglKMUpygVp/NOhWJc=" hash2 rwa version v2c
@@ -1624,14 +1628,14 @@ configure router ospf
             if port["lag"]:
                 script += """
                 authentication-type password
-                authentication-key OSPF!#@$"""
+                authentication-key {os.getenv("OSPF_NOKIA")}"""
             else:
                 if port["interfaces"][0].get("bfd"):
                     script += """
                 bfd-enable remain-down-on-failure"""
                 script += """
                 authentication-type password
-                authentication-key OSPF!#@$"""
+                authentication-key {os.getenv("OSPF_NOKIA")}"""
             script += """
                 no shutdown
             exit"""
@@ -1645,14 +1649,14 @@ configure router ospf
             if port["lag"]:
                 script += """
                 authentication-type password
-                authentication-key OSPF!#@$"""
+                authentication-key {os.getenv("OSPF_NOKIA")}"""
             else:
                 if port["interfaces"][0].get("bfd"):
                     script += """
                 bfd-enable remain-down-on-failure"""
                 script += """
                 authentication-type password
-                authentication-key OSPF!#@$"""
+                authentication-key {os.getenv("OSPF_NOKIA")}"""
             script += """
                 no shutdown
             exit"""
@@ -2588,7 +2592,7 @@ configure router bgp
     enable-peer-tracking
     group "Client"
         family ipv4 vpn-ipv4 l2-vpn mvpn-ipv4 label-ipv4 vpn-ipv6
-        authentication-key BaCkBoNeBGP!#@$
+        authentication-key {os.getenv("BGP")}
         outbound-route-filtering
             extended-community
                 send-orf

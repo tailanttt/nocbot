@@ -1,3 +1,7 @@
+import os 
+from dotenv import load_dotenv 
+load_dotenv()
+
 def gerar_script(
     hostname,
     ip_loopback,
@@ -327,7 +331,7 @@ ntp enable
 ntp authenticate
 ntp source interface loopback100
 ntp access-group ipv4-access-list NTP
-ntp authentication-key 6 md5 clear NTP6%@backbone
+ntp authentication-key 6 md5 clear {os.getenv("NTP")}
 ntp trusted-key 6
 ntp master 12
 """
@@ -404,11 +408,11 @@ snmp-server trap-source interface loopback100
 snmp-server version v2c enable
 snmp-server enable inform
 snmp-server enable trap
-snmp-server community CLAROIPRAN showclear view AllView ro ipv4-access-list 1301
-snmp-server community ZENICONE-IP showclear view AllView ro ipv4-access-list 1301
-snmp-server community IPRAN-EBT showclear view AllView ro ipv4-access-list 1302
-snmp-server community Backbone-EBT showclear view AllView ro ipv4-access-list 1302
-snmp-server host 10.129.72.179 trap version 2c ZENICONE-IP showclear udp-port 162
+snmp-server community {os.getenv("SNMP_IPRAN")} showclear view AllView ro ipv4-access-list 1301
+snmp-server community {os.getenv("ZENICONE")} showclear view AllView ro ipv4-access-list 1301
+snmp-server community {os.getenv("SNMP_IPRAN_EBT")} showclear view AllView ro ipv4-access-list 1302
+snmp-server community {os.getenv("SNMP_BACKBONE")} showclear view AllView ro ipv4-access-list 1302
+snmp-server host 10.129.72.179 trap version 2c {os.getenv("ZENICONE")} showclear udp-port 162
 $
 snetconf server enable
 netconf agent enable
@@ -977,7 +981,7 @@ $"""
 interface {portas_fo[x]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
-message-digest-key 1 md5 BaCkBoNeOSPF!#@$
+message-digest-key 1 md5 {os.getenv("OSPF")}
 cost {fibra[x]["ospf_cost"]}
 mtu-ignore
 $"""
@@ -990,7 +994,7 @@ $"""
 interface {portas_mwrot[x]}.{mwrot[x]["porta_logica"]["bdi"]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
-message-digest-key 1 md5 BaCkBoNeOSPF!#@$
+message-digest-key 1 md5 {os.getenv("OSPF")}
 cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 mtu-ignore
 $"""
@@ -1000,7 +1004,7 @@ $"""
 interface {portas_mwrot[x]}
 bfd interval 100 min-rx 100 multiplier 3
 network point-to-point
-message-digest-key 1 md5 BaCkBoNeOSPF!#@$
+message-digest-key 1 md5 {os.getenv("OSPF")}
 cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 mtu-ignore
 $"""
@@ -1027,7 +1031,7 @@ neighbor CSG-AGG next-hop-self
 neighbor CSG-AGG send-community
 neighbor CSG-AGG send-label
 neighbor CSG-AGG update-source loopback100
-neighbor CSG-AGG password BaCkBoNeBGP!#@$
+neighbor CSG-AGG password {os.getenv("BGP")}
 neighbor CSG-AGG tracking"""
     for i in range(len(bgp["ips_vizinhos"])):
         script += f"""
@@ -2167,7 +2171,7 @@ user-authen-restriction fail-time 5 lock-minute 5
 user-name claroadmin
 bind authentication-template 127
 bind authorization-template 127
-password claroadmin@1q2w3e
+password {os.getenv("CLAROADMIN")}
 $
 user-name suporteipran
 bind authentication-template 127

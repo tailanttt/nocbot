@@ -44,7 +44,7 @@ def extrair_dados(backup):
     portas = re.findall(r'(?m)^\s{4}port\s+\S+[\s\S]*?^\s{4}exit$', backup)
     blocos_interface = re.findall(r'^\s{8}interface\s+"(TO[^"]+)"(.*?)^\s{8}exit\b', backup, re.DOTALL | re.MULTILINE)    
     blocos_lag = list(re.finditer(r'(?m)^ {4}lag (\d+)[\s\S]*?^ {4}exit$', backup))
-    blocos_gerencia = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"] + "61"}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup, re.DOTALL | re.MULTILINE)
+    blocos_gerencia = re.findall( rf'^(?: {{8}}|\t{{2}})vprn {str(bgp["ddd"]) + "61"}\b.*?^(?: {{8}}|\t{{2}})exit\b', backup, re.DOTALL | re.MULTILINE )
     blocos_int_gerencia = re.findall(r'^(?: {12}|\t{3})interface\s+".+?"\s+create.*?^(?: {12}|\t{3})exit\b', blocos_gerencia[1] if len(blocos_gerencia) > 1 else blocos_gerencia[0] if blocos_gerencia else '', re.DOTALL | re.MULTILINE)
     fibra = []
     mwrot = []
