@@ -31,11 +31,14 @@ def pagina_integracao():
     modelo_destino = st.selectbox("Modelo de saída", modelos_saida)
 
     # Linha 1: Hostname e Loopback
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         hostname_input = st.text_input("Hostname", help="Ex.: SIPRF14-RMP01 (RMA será convertido para RMP automaticamente)")
     with col2:
         ip_loopback = st.text_input("Loopback100 (IP)", help="Ex.: 10.100.0.1")
+    with col3:
+        processo_ospf_str = st.text_input("OSPF (nº)", value="")
+        processo_ospf = int(processo_ospf_str) if processo_ospf_str.strip().isdigit() else None
 
     # Deriva UF e Site do hostname
     uf_auto, site_auto, hostname = ("", "", "")
@@ -45,28 +48,21 @@ def pagina_integracao():
         site_auto = hn[2:].split("-")[0].strip() if len(hn) > 2 else ""
         hostname = hn
 
-    # Linha única com 5 campos: BGP, UF, Site, OSPF, Área OSPF
-    col1, col2, col3, col4, col5 = st.columns(5)
+    # Linha única com 5 campos: BGP, UF, Site, OSPF
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         ddd = ddd_por_uf(uf_auto)
         bgp_proc_auto = "650" + str(ddd) if ddd is not None else ""
         bgp_processo_str = st.text_input("BGP (650+DDD)", value=bgp_proc_auto)
         bgp_processo = int(bgp_processo_str) if bgp_processo_str.strip().isdigit() else None
-
     with col2:
         uf = st.text_input("UF", value=uf_auto)
-
     with col3:
         site = st.text_input("Site", value=site_auto)
-
     with col4:
-        processo_ospf_str = st.text_input("Processo OSPF", value="")
-        processo_ospf = int(processo_ospf_str) if processo_ospf_str.strip().isdigit() else None
-
-    with col5:
         area_ospf_sugestao = calcular_area_ospf(processo_ospf)
-        area_ospf = st.text_input("Área OSPF", value=area_ospf_sugestao)
+        area_ospf = st.text_input("OSPF (IP)", value=area_ospf_sugestao)
 
     # PTP, NTP e BGP peers (campos de uma linha)
     ptp_ips_raw = st.text_input("PTP IPs (separados por espaço)")
