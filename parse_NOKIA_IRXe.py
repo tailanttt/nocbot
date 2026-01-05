@@ -185,7 +185,7 @@ def extrair_dados(backup):
                 }
                 empresarial.append(item_edd)     
 # GERÊNCIA L3 — busca no segundo bloco vprn
-                blocos_vprn_edd = re.findall(r'^(?: {8}|\t{2})vprn 317281\b.*?^(?: {8}|\t{2})exit\b', backup, re.DOTALL | re.MULTILINE)
+                blocos_vprn_edd = re.findall(rf'^(?: {{8}}|\t{{2}})vprn {bgp["ddd"]}7281\b.*?^(?: {{8}}|\t{{2}})exit\b',backup,re.DOTALL | re.MULTILINE)
                 if blocos_vprn_edd:
                     
                     bloco_gerencia = blocos_vprn_edd[1]
@@ -211,7 +211,7 @@ def extrair_dados(backup):
                 blocos_epipe = re.findall(r'^(?: {8}|\t{2})epipe\s+\d+\s+name\s+".*?".*?^(?: {8}|\t{2})exit\b', backup, re.DOTALL | re.MULTILINE)
             
                 for bloco_epipe in blocos_epipe:
-                    porta_match = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', bloco_epipe)
+                    porta_match = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)(?:\.(\d+))?', interface_bloco)
                     if not porta_match or porta_match.group(1) != porta.group(1):
                         continue
                     epipe_match = re.search(r'epipe\s+(\d+)', bloco_epipe)
@@ -235,6 +235,7 @@ def extrair_dados(backup):
                         "descricao": descricao_match.group(1) if descricao_match else None,
                         "porta": porta_match.group(1),
                         "vlan": porta_match.group(2),
+                        "vlan2": porta_match.group(3),
                         "mtu": mtu_match.group(1) if mtu_match else None,
                         "sdp": sdp_match.group(1) if sdp_match else None,
                         "velocidade": velocidade_match.group(1) if velocidade_match else None,

@@ -3511,68 +3511,78 @@ exit all
 #====================================================================
 # EMPRESARIAL
 #===================================================================="""
-#configure port 1/1/c11
-#        connector
-#            breakout c1-1g
-#        exit
-#        no shutdown
-#exit all
+
+    for porta in empresarial:
+        porta_edd = portas10.pop(0)
+        portas_edd.append(porta_edd)
+        script+= f"""
+configure port {porta_edd}
+        connector
+            breakout c1-{int(porta['speed'])//1000}g
+        exit
+        no shutdown
+exit all
 #
 #
-#configure port 1/1/c11/1
-#        description "UNI|EoMPLS|INTERCONEXAO CLIENTE EMBRATEL"
-#        ethernet
-#            speed 1000
-#            no autonegotiate
-#            mode access
-#            encap-type dot1q
-#            mtu 9212
-#        exit
-#        no shutdown
-#exit all
-##
-##
-#configure service vprn 927281 name "927281" customer 21 create
-#            interface "Gi1/1/c11/1.4000" create
-#                description "UNI|ACESSO|EMBRATEL|DCN|GERENCIA1|SSD555696"
-#                address 2.1.118.117/30
-#                sap 1/1/c11/1:4000 create
-#                    ingress
-#                        qos 499
-#                        aggregate-policer-rate 517 burst default
-#                    exit
-#                exit
-#            exit
-#        exit
-#exit all
-##
-##
-#configure service
-#        sdp 1082 mpls create
-#            description "TO_"
-#            far-end 10.237.0.1
-#            ldp
-#            keep-alive
-#                shutdown
-#            exit
-#            no shutdown
-#        exit
-#        epipe 122780002 name "BABON14-BASDR02-00006" customer 21 create
-#            description "UNI|EoMPLS|SENDAS DISTRIBUIDORA S A|SDR/IP/33902|BLD"
-#            service-mtu 1560
-#            sap 1/1/c15/1:2 create
-#                description "UNI|EoMPLS|SENDAS DISTRIBUIDORA S A|SDR/IP/33902|BLD"
-#                ingress
-#                    qos 499
-#                    aggregate-policer-rate 50500 burst default
-#                exit
-#                no shutdown
-#            exit
-#            spoke-sdp 1082:122780002 create
-#                no shutdown
-#            exit
-#            no shutdown
-#        exit """
+configure port {porta_edd}/1
+        description "{porta['descricao']}"
+        ethernet
+            speed {porta['speed']}
+            no autonegotiate
+            mode access
+            encap-type {"qinq" if any(ep.get("vlan2") for ep in porta["epipe"]) else "dot1q"}
+            mtu {porta['mtu']}
+        exit
+        no shutdown
+exit all
+#
+#"""
+        if porta["gerencia"]:
+           script+= f"""
+configure service vprn {bgp["ddd"]}7281 name "{bgp["ddd"]}7281" customer 21 create
+   interface "{porta_edd}/1.{porta['gerencia']['dot1q']}" create
+            description "{porta['gerencia']['descricao']}"
+            address {porta['gerencia']['ip']}
+            sap {porta_edd}/1:{porta['gerencia']['dot1q']} create
+                ingress
+                    qos 499
+                    aggregate-policer-rate 517 burst default
+                exit
+            exit
+        exit
+    exit
+exit all
+#
+#"""
+        if porta["epipe"]:
+            for ep in porta["epipe"]:
+                script+= f"""
+configure service
+    sdp {ep['sdp']} mpls create
+        description "{ep['descricao_sdp']}"
+        far-end {ep['ip_sdp']}
+        ldp
+        keep-alive
+            shutdown
+        exit
+        no shutdown
+    exit
+    epipe {ep['epipe']} name "{ep['descricao_sdp']}" customer 21 create
+        description "{ep['descricao']}"
+        service-mtu {ep['mtu']}
+        sap {porta_edd}/1:{ep['vlan']}{'.'+ep['vlan2'] if ep.get('vlan2') else ''} create
+            description "{ep['descricao']}"
+            ingress
+                qos 499
+                aggregate-policer-rate {ep['velocidade']} burst default
+            exit
+            no shutdown
+        exit
+        spoke-sdp {ep['ip_sdp']}:{ep['epipe']} create
+            no shutdown
+        exit
+        no shutdown
+    exit """
 
 # DE PARA
 
@@ -3601,10 +3611,18 @@ exit all
         porta_antiga = movel[i]['porta']
         porta_nova = f"{portas_movel[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - UNI MOVEL\n"
+
+# UNI BATERIA
     for i in range(len(bateria or [])):
         porta_antiga = bateria[i]['porta']
         porta_nova = f"{portas_bateria[i]}"
         de_para_texto += f"De {porta_antiga} → Para {porta_nova} - BATERIA\n"
+        
+# EMPRESARIAL
+    for i in range(len(empresarial or [])):
+        porta_antiga = empresarial[i]['porta']
+        porta_nova = f"{portas_edd[i]}"
+        de_para_texto += f"De {porta_antiga} → Para {porta_nova} - EMPRESARIAL\n"
 
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
