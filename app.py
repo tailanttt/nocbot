@@ -1,6 +1,7 @@
 import streamlit as st
 from pagina_swap import pagina_swap
 from pagina_integracao import pagina_integracao
+from pagina_ptp import pagina_ptp   # nova página
 
 def main():
     # Cabeçalho
@@ -8,13 +9,15 @@ def main():
     st.markdown("<h3 style='text-align: center;'>GERADOR DE SCRIPT - NOC CONFIGURAÇÃO</h3>", unsafe_allow_html=True)
 
     # Menu lateral
-    escolha = st.sidebar.radio("📑 Escolha:", ["Swap", "Integração"])
+    escolha = st.sidebar.radio("📑 Escolha:", ["Swap", "Integração", "PTP Multicast"])
 
     # Chama a página escolhida
     if escolha == "Swap":
         pagina_swap()
     elif escolha == "Integração":
         pagina_integracao()
+    elif escolha == "PTP Multicast":
+        pagina_ptp()
 
 if __name__ == "__main__":
     main()
