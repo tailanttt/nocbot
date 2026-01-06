@@ -1,7 +1,6 @@
 import streamlit as st
 from pagina_swap import pagina_swap
 from pagina_integracao import pagina_integracao
-from pagina_ptp import pagina_ptp   # nova página
 
 def main():
     # Cabeçalho
@@ -18,4 +17,5 @@ def main():
         pagina_integracao()
 if __name__ == "__main__":
     main()
+
 
