@@ -30,7 +30,6 @@ def coletar_dados(ip, username, password):
         "ip": ip,
         "username": username,
         "password": password,
-        "fast_cli": True,
         "session_log": "saida.log"
     }
     net_connect = ConnectHandler(**device)
