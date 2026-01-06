@@ -26,7 +26,7 @@ def is_radio_iface(net_connect, iface):
 
 def coletar_dados(ip, username, password):
     device = {
-        "device_type": "huawei_vrp",   # ajuste para Huawei VRP
+        "device_type": "huawei",
         "ip": ip,
         "username": username,
         "password": password,
@@ -210,4 +210,5 @@ save
 display ptp all
 display clock source
 """
+    net_connect.disconnect()
     return script
