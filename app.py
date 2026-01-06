@@ -9,15 +9,13 @@ def main():
     st.markdown("<h3 style='text-align: center;'>GERADOR DE SCRIPT - NOC CONFIGURAÇÃO</h3>", unsafe_allow_html=True)
 
     # Menu lateral
-    escolha = st.sidebar.radio("📑 Escolha:", ["Swap", "Integração", "PTP Multicast"])
+    escolha = st.sidebar.radio("📑 Escolha:", ["Swap", "Integração"])
 
     # Chama a página escolhida
     if escolha == "Swap":
         pagina_swap()
     elif escolha == "Integração":
         pagina_integracao()
-    elif escolha == "PTP Multicast":
-        pagina_ptp()
-
 if __name__ == "__main__":
     main()
+
