@@ -30,7 +30,8 @@ def coletar_dados(ip, username, password):
         "ip": ip,
         "username": username,
         "password": password,
-        "session_log": "saida.log"
+        "session_log": "saida.log",
+        "fast_cli": False   # dá mais tempo entre comandos
     }
     net_connect = ConnectHandler(**device)
 
@@ -48,39 +49,29 @@ def coletar_dados(ip, username, password):
     # 2. Descobre cabeça mais próximo via traceroute
     hops = {}
     for peer in bgp_peers:
-        net_connect.write_channel(f"tracert -w 1000 -q 1 -m 10 {peer}\n")
-        tracert_out, start = "", time.time()
-    
-        while time.time() - start < 5:  # limite de 5s
-            time.sleep(0.5)
-            chunk = net_connect.read_channel()
-            if chunk:
-                tracert_out += chunk
-                if "*" in chunk:  # aborta no primeiro '*'
-                    net_connect.write_channel("\x03")
-                    tracert_out += net_connect.read_channel()
-                    break
-            if net_connect.base_prompt in chunk:  # comando terminou
-                break
-    
+        tracert_out = net_connect.send_command_timing(
+            f"tracert -w 1000 -q 1 -m 10 {peer}",
+            delay_factor=5
+        )
+
         linhas = tracert_out.splitlines()
         saida_filtrada = []
         for linha in linhas:
             saida_filtrada.append(linha)
-            if "*" in linha:
+            if "*" in linha:   # aborta análise no primeiro salto não respondido
                 break
-    
+
         qtd = len(re.findall(r"^\s*\d+\s", "\n".join(saida_filtrada), re.MULTILINE))
         hops[peer] = qtd if qtd else 9999
-    
+
     menor = min(hops.values())
     cabeca_proximo = [p for p, h in hops.items() if h == menor][0]
-    
+
     print("\n=== Hops por peer ===")
     for p, h in hops.items():
         print(f"{p}: {h} hops")
     print(f"Cabeça mais próximo: {cabeca_proximo}")
-    
+
     # 3. Interfaces OSPF Full
     ospf_output = net_connect.send_command("display ospf peer brief")
     ospf_full = [normaliza_iface(x) for x in re.findall(r"\s+(\S+)\s+\S+\s+Full", ospf_output)]
