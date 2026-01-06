@@ -26,7 +26,7 @@ def is_radio_iface(net_connect, iface):
 
 def coletar_dados(ip, username, password):
     device = {
-        "device_type": "huawei",
+        "device_type": "huawei_vrp",
         "ip": ip,
         "username": username,
         "password": password,
