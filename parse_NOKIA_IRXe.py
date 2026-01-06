@@ -54,10 +54,10 @@ def extrair_dados(backup):
     vprns = [("ABIS", 103), ("IUB", 1), ("S1", 95), ("GERENCIA", 61)]    
     
     for bloco in portas:
-        descricao = re.search(r'\s*description\s+"([^"]+)"', bloco)
+        description = re.search(r'\s*description\s+"([^"]+)"', bloco)
         if "description" in bloco:    
 #FO            
-            if descricao and "NNI" in descricao.group(1) and not ("MW-ROT" in descricao.group(1) or "MWROT" in descricao.group(1)):
+            if description and "NNI" in description.group(1) and not ("MW-ROT" in description.group(1) or "MWROT" in description.group(1)):
                 interfaces_nni = []
                 porta = re.search(r'^\s*port\s+(\S+)', bloco, re.MULTILINE)
                 speed = re.search(r'\s*speed\s+(\S+)', bloco)
@@ -82,28 +82,28 @@ def extrair_dados(backup):
                     if porta_logica:
                         dot1q = porta_logica.group(1) if porta_logica and porta_logica.group(1) else None
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
-                        descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
+                        description_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
                         bfd_match = re.search(r'\bbfd\b', bloco_logico, re.IGNORECASE)
                         bfd_exists = bfd_match is not None
 
                         interfaces_nni.append({
                             "interface": interface,
                             "ip": ip.group(1) if ip else None,
-                            "descricao": descricao_logica.group(1) if descricao_logica else None,
+                            "description": description_logica.group(1) if description_logica else None,
                             "porta": porta.group(1) if porta else None,
                             "dot1q": dot1q,
                             "bfd": bfd_exists
                         })
                 fibra.append({
                     "porta": porta.group(1) if porta else None,
-                    "descricao": descricao.group(1),
+                    "description": description.group(1),
                     "speed": speed.group(1) if speed else "100000" if "c" in porta.group(1) else "10000",
                     "interfaces": interfaces_nni,
                     "lag": lag
                 })
               
 # MWROT
-            elif descricao and "NNI" in descricao.group(1) and ("MW-ROT" in descricao.group(1) or "MWROT" in descricao.group(1)):
+            elif description and "NNI" in description.group(1) and ("MW-ROT" in description.group(1) or "MWROT" in description.group(1)):
                 interfaces_mwrot = []
                 gerencia_mwrot = None
                 porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
@@ -130,7 +130,7 @@ def extrair_dados(backup):
             
                     if match_por_porta or match_por_lag:
                         ip = re.search(r'address\s+(\d{1,3}(?:\.\d{1,3}){3}/\d+)', bloco_logico)
-                        descricao_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
+                        description_logica = re.search(r'description\s+"([^"]+)"', bloco_logico)
                         bfd_match = re.search(r'\bbfd\b', bloco_logico, re.IGNORECASE)
                         bfd_exists = bfd_match is not None
 #GERENCIA
@@ -143,7 +143,7 @@ def extrair_dados(backup):
             
                                 gerencia_mwrot = {
                                     "interface": interface_nome.group(1) if interface_nome else None,
-                                    "descricao": description_gerencia.group(1) if description_gerencia else None,
+                                    "description": description_gerencia.group(1) if description_gerencia else None,
                                     "ip": ip_gerencia.group(1) if ip_gerencia else None,
                                     "porta": sap.group(1) if sap else None,
                                     "dot1q": sap.group(2) if sap else None
@@ -151,7 +151,7 @@ def extrair_dados(backup):
                         interfaces_mwrot.append({
                             "interface": interface,
                             "ip": ip.group(1) if ip else None,
-                            "descricao": descricao_logica.group(1) if descricao_logica else None,
+                            "description": description_logica.group(1) if description_logica else None,
                             "porta": porta_logica.group(1) if porta_logica else (f"lag-{lag}" if lag else None),                            
                             "dot1q": porta_logica.group(2) if porta_logica else (lag_logico.group(2) if lag_logico else None),
                             "gerencia": gerencia_mwrot,
@@ -160,7 +160,7 @@ def extrair_dados(backup):
             
                 mwrot.append({
                     "porta": porta.group(1) if porta else None,
-                    "descricao": descricao.group(1),
+                    "description": description.group(1),
                     "speed": speed.group(1) if speed else "10000",
                     "bandwidth": bandwidth.group(1) if bandwidth else None,
                     "bnm_ativo": bnm_ativo,
@@ -168,7 +168,7 @@ def extrair_dados(backup):
                     "lag": lag
                 })          
 # EDD
-            elif descricao and "UNI" in descricao.group(1) and ("EDD" in descricao.group(1) or "EoMPLS" in descricao.group(1)):
+            elif description and "UNI" in description.group(1) and ("EDD" in description.group(1) or "EoMPLS" in description.group(1)):
                 porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
                 speed = re.search(r'\s*speed\s+(\S+)', bloco)
                 mtu = re.search(r'mtu\s+(\d+)', bloco)
@@ -177,7 +177,7 @@ def extrair_dados(backup):
             
                 item_edd = {
                     "porta": porta.group(1),
-                    "descricao": descricao.group(1),
+                    "description": description.group(1),
                     "speed": speed.group(1) if speed else None,
                     "mtu": mtu.group(1) if mtu else None,
                     "epipe": [],
@@ -194,7 +194,7 @@ def extrair_dados(backup):
             
                     for interface_bloco in interfaces_gerencia:
                         porta_match = re.search(r'sap\s+(\d+/\d+/\d+):(\d+)', interface_bloco)
-                        descricao_g = re.search(r'description\s+"([^"]+)"', interface_bloco)
+                        description_g = re.search(r'description\s+"([^"]+)"', interface_bloco)
                         ip = re.search(r'address\s+(\S+)', interface_bloco)
                        
                         if not porta_match:
@@ -203,7 +203,7 @@ def extrair_dados(backup):
                         if porta_match.group(1) == porta.group(1):
                             item_edd["gerencia"] = { 
                                 "porta": porta_match.group(1),
-                                "descricao": descricao_g.group(1) if descricao_g else None,
+                                "description": description_g.group(1) if description_g else None,
                                 "ip": ip.group(1) if ip else None,
                                 "dot1q": porta_match.group(2)
                             }
@@ -215,36 +215,36 @@ def extrair_dados(backup):
                     if not porta_match or porta_match.group(1) != porta.group(1):
                         continue
                     epipe_match = re.search(r'epipe\s+(\d+)', bloco_epipe)
-                    descricao_match = re.search(r'name\s+"([^"]+)"', bloco_epipe)
+                    description_match = re.search(r'name\s+"([^"]+)"', bloco_epipe)
                     mtu_match = re.search(r'service-mtu\s+(\d+)', bloco_epipe)
                     sdp_match = re.search(r'spoke-sdp\s+(\d+):\d+', bloco_epipe)
                     velocidade_match = re.search(r'aggregate-policer-rate\s+(\d+)', bloco_epipe)
                 
 #PROCURA BLOCO SDP
-                    descricao_sdp, ip_sdp = None, None
+                    description_sdp, ip_sdp = None, None
                     if sdp_match:
                         blocos_sdp = re.findall(rf'^(?: {{8}}|\t{{2}})sdp {sdp_match.group(1)} .*?^(?: {{8}}|\t{{2}})exit\b',backup,re.DOTALL | re.MULTILINE)
                         for bloco_sdp in blocos_sdp:
                             desc_match = re.search(r'description\s+"([^"]+)"', bloco_sdp)
                             ip_match   = re.search(r'far-end\s+([\d\.]+)', bloco_sdp)
-                            descricao_sdp = desc_match.group(1) if desc_match else None
+                            description_sdp = desc_match.group(1) if desc_match else None
                             ip_sdp        = ip_match.group(1) if ip_match else None
                 
                     item_edd["epipe"].append({
                         "epipe": epipe_match.group(1) if epipe_match else None,
-                        "descricao": descricao_match.group(1) if descricao_match else None,
+                        "description": description_match.group(1) if description_match else None,
                         "porta": porta_match.group(1),
                         "vlan": porta_match.group(2),
                         "vlan2": porta_match.group(3),
                         "mtu": mtu_match.group(1) if mtu_match else None,
                         "sdp": sdp_match.group(1) if sdp_match else None,
                         "velocidade": velocidade_match.group(1) if velocidade_match else None,
-                        "descricao_sdp": descricao_sdp,
+                        "description_sdp": description_sdp,
                         "ip_sdp": ip_sdp
                     })
 
 # BATERIA
-            elif descricao and "UNI" in descricao.group(1) and ("LITIO" in descricao.group(1) or "FONTE" in descricao.group(1) or "PWR" in descricao.group(1)):
+            elif description and "UNI" in description.group(1) and ("LITIO" in description.group(1) or "FONTE" in description.group(1) or "PWR" in description.group(1)):
                 porta = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
                 speed = re.search(r'\s*speed\s+(\S+)', bloco)
                 
@@ -257,13 +257,13 @@ def extrair_dados(backup):
                     
                         gerencia_bateria = {
                             "interface": interface_nome.group(1) if interface_nome else None,
-                            "descricao": description_gerencia.group(1) if description_gerencia else None,
+                            "description": description_gerencia.group(1) if description_gerencia else None,
                             "ip": ip_gerencia.group(1) if ip_gerencia else None,
                             "porta": sap.group(1) if sap else None,
                             "dot1q": sap.group(2) if sap else None
                         }
                 bateria.append({
-                            "descricao": descricao.group(1) if descricao else None,                            
+                            "description": description.group(1) if description else None,                            
                             "porta": porta.group(1) if porta else None,
                             "speed": speed.group(1) if speed else None,
                             "gerencia": gerencia_bateria
@@ -298,7 +298,7 @@ def extrair_dados(backup):
         interfaces_movel = []
         for bloco in portas:
             if re.search(rf'^ {{4}}port {re.escape(porta)}\b', bloco, re.MULTILINE):
-                descricao = re.search(r'\s*description\s+"([^"]+)"', bloco)
+                description = re.search(r'\s*description\s+"([^"]+)"', bloco)
                 porta_fisica = re.search(r'^\s*port\s+(\d+/\d+/\d+)', bloco, re.MULTILINE)
                 speed = re.search(r'\s*speed\s+(\S+)', bloco)
         
@@ -332,7 +332,7 @@ def extrair_dados(backup):
                                 
         movel.append({
             "porta": porta_fisica.group(1) if porta_fisica else None,
-            "descricao": descricao.group(1) if descricao else None,
+            "description": description.group(1) if description else None,
             "speed": speed.group(1) if speed else "10000",
             "interfaces_movel": interfaces_movel
         })
@@ -383,7 +383,7 @@ def extrair_dados(backup):
 #    for item in fibra:
 #        print("\n=== Interface Física FO ===")
 #        print(f"Porta        : {item['porta']}")
-#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Descrição    : {item['description']}")
 #        print(f"Speed        : {item['speed'] if item['speed'] else '-'}")
 #        print(f"LAG          : {item['lag']}")
 #        
@@ -393,7 +393,7 @@ def extrair_dados(backup):
 #        for interface in item["interfaces"]:
 #            print(f"Nome         : {interface['interface']}")
 #            print(f"IP           : {interface['ip']}")
-#            print(f"Descrição    : {interface['descricao']}")
+#            print(f"Descrição    : {interface['description']}")
 #            print(f"Porta        : {interface['porta']}")
 #            print(f"Vlan         : {interface['dot1q']}")
 #            
@@ -401,7 +401,7 @@ def extrair_dados(backup):
 #    for item in mwrot:
 #        print("\n=== Interface Física MWROT ===")
 #        print(f"Porta        : {item['porta']}")
-#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Descrição    : {item['description']}")
 #        print(f"Speed        : {item['speed']}")
 #        print(f"Bandwidth    : {item['bandwidth']}")
 #        print(f"BNM          : {item['bnm_ativo']}")
@@ -411,12 +411,12 @@ def extrair_dados(backup):
 #            print(f"Porta        : {interface['porta']}")
 #            print(f"Nome         : {interface['interface']}")
 #            print(f"IP           : {interface['ip']}")
-#            print(f"Descrição    : {interface['descricao']}")
+#            print(f"Descrição    : {interface['description']}")
 #            print(f"Vlan         : {interface['dot1q']}")                                  
 #            if interface.get("gerencia"):
 #                print(f"Interface    : {interface['gerencia']['interface']}")
 #                print(f"Porta        : {interface['gerencia']['porta']}")
-#                print(f"Descrição    : {interface['gerencia']['descricao']}")
+#                print(f"Descrição    : {interface['gerencia']['description']}")
 #                print(f"IP           : {interface['gerencia']['ip']}")
 #                print(f"Vlan         : {interface['gerencia']['dot1q']}")
 #                
@@ -425,7 +425,7 @@ def extrair_dados(backup):
 #    for item in movel:
 #        print("\n=== Interface Física UNI MOVEL ===")
 #        print(f"Porta        : {item['porta']}")
-#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Descrição    : {item['description']}")
 #        print(f"Speed        : {item['speed'] if item['speed'] else '-'}")
 #
 #        for interface in item["interfaces_movel"]:
@@ -442,13 +442,13 @@ def extrair_dados(backup):
 #    for item in bateria:
 #        print("\n=== UNI Bateria ===")
 #        print(f"Porta        : {item['porta']}")
-#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Descrição    : {item['description']}")
 #        print(f"Speed        : {item['speed'] if item['speed'] else '-'}")
 #
 #        if item.get("gerencia"):
 #                print(f"Interface    : {item['gerencia']['interface']}")
 #                print(f"Porta        : {item['gerencia']['porta']}")
-#                print(f"Descrição    : {item['gerencia']['descricao']}")
+#                print(f"Descrição    : {item['gerencia']['description']}")
 #                print(f"IP           : {item['gerencia']['ip']}")
 #                print(f"Vlan         : {item['gerencia']['dot1q']}")
 #
@@ -456,14 +456,14 @@ def extrair_dados(backup):
 #    for item in empresarial:
 #        print("\n=== Interface Física UNI EDD ===")
 #        print(f"Porta        : {item['porta']}")
-#        print(f"Descrição    : {item['descricao']}")
+#        print(f"Descrição    : {item['description']}")
 #        print(f"Speed        : {item['speed'] if item['speed'] else '-'}")
 #        print(f"MTU          : {item['mtu'] if item['speed'] else '-'}")
 #        
 #        if item["gerencia"]:
 #            print(f"\n--- Gerência L3 ---")
 #            print(f"Porta        : {item['gerencia']['porta']}")
-#            print(f"Descrição    : {item['gerencia']['descricao']}")
+#            print(f"Descrição    : {item['gerencia']['description']}")
 #            print(f"IP           : {item['gerencia']['ip']}")
 #            print(f"Vlan         : {item['gerencia']['dot1q']}")
 #            
@@ -472,12 +472,12 @@ def extrair_dados(backup):
 #                print(f"\n--- Serviço ---")
 #                print(f"Porta        : {ep['porta']}")
 #                print(f"PW           : {ep['epipe']}")
-#                print(f"Descrição    : {ep['descricao']}")
+#                print(f"Descrição    : {ep['description']}")
 #                print(f"MTU          : {ep['mtu']}")
 #                print(f"Vlan         : {ep['vlan']}")
 #                print(f"Velocidade   : {ep['velocidade'] if ep['velocidade'] else '-'}")
 #                print(f"SDP          : {ep['sdp'] if ep['sdp'] else '-'}")
-#                print(f"Desc SDP     : {ep['descricao_sdp'] if ep['descricao_sdp'] else '-'}")
+#                print(f"Desc SDP     : {ep['description_sdp'] if ep['description_sdp'] else '-'}")
 #                print(f"IP SDP       : {ep['ip_sdp'] if ep['ip_sdp'] else '-'}")
 #
 #

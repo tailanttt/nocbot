@@ -1286,7 +1286,7 @@ exit all
 #
 #
 configure port {porta_fo}/1
-    description "{port["descricao"]}"
+    description "{port["description"]}"
     ethernet
         mode network
         mtu 9212
@@ -1320,7 +1320,7 @@ exit all
         if port["lag"]:
             script+=f"""
 configure lag {port["lag"]}
-    description "{port["descricao"]}"
+    description "{port["description"]}"
     mode network
     lacp active
     port {porta_fo}/1        
@@ -1334,7 +1334,7 @@ exit all
 #
 configure router
     interface {interface["interface"]}
-    description "{interface["descricao"]}"
+    description "{interface["description"]}"
     address {interface["ip"]}
     port lag-{port["lag"]}
 exit
@@ -1347,7 +1347,7 @@ exit all
                 script += f"""
 configure router
     interface {interface["interface"]}
-    description "{interface["descricao"]}"
+    description "{interface["description"]}"
     address {interface["ip"]}
     port {porta_fo}/1
     egress
@@ -1444,7 +1444,7 @@ exit all
 #
 #
 configure port {porta_mwrot}/1
-    description "{port["descricao"]}"
+    description "{port["description"]}"
     ethernet
         mode hybrid
         encap-type dot1q
@@ -1481,7 +1481,7 @@ exit all
             script += f"""
 configure router
     interface {interface["interface"]}
-    description "{interface["descricao"]}"
+    description "{interface["description"]}"
     address {interface["ip"]}
     port {porta_mwrot}/1:{interface["dot1q"]}
     egress
@@ -1524,7 +1524,7 @@ exit all
             script += f"""
 configure service vprn {bgp["ddd"]}61
     interface "{interface["gerencia"]["interface"]}" create
-        description "{interface["gerencia"]["descricao"]}"
+        description "{interface["gerencia"]["description"]}"
         address {interface["gerencia"]["ip"]}
         sap {porta_mwrot}/1:{interface["gerencia"]["dot1q"]} create
             ingress
@@ -3197,7 +3197,7 @@ configure port {porta_movel}
 exit all
 #
 configure port {porta_movel}/1
-    description "{porta["descricao"]}"
+    description "{porta["description"]}"
     ethernet
         mode access
         encap-type dot1q
@@ -3400,7 +3400,7 @@ configure port {porta_bateria}
 #
 #
 configure port {porta_bateria}/1
-        description "{porta["descricao"]}"
+        description "{porta["description"]}"
         ethernet
             mode access
             speed 1000
@@ -3414,7 +3414,7 @@ configure port {porta_bateria}/1
 #
 configure service vprn {bgp["ddd"]}61
             interface "{porta["gerencia"]["interface"]}" create
-                description "{porta["gerencia"]["descricao"]}"
+                description "{porta["gerencia"]["description"]}"
                 address {porta["gerencia"]["ip"]}
                 sap {porta_bateria}/1:0 create
                     ingress
@@ -3525,7 +3525,7 @@ exit all
 #
 #
 configure port {porta_edd}/1
-        description "{porta['descricao']}"
+        description "{porta['description']}"
         ethernet
             speed {porta['speed']}
             no autonegotiate
@@ -3541,7 +3541,7 @@ exit all
            script+= f"""
 configure service vprn {bgp["ddd"]}7281 name "{bgp["ddd"]}7281" customer 21 create
    interface "{porta_edd}/1.{porta['gerencia']['dot1q']}" create
-            description "{porta['gerencia']['descricao']}"
+            description "{porta['gerencia']['description']}"
             address {porta['gerencia']['ip']}
             sap {porta_edd}/1:{porta['gerencia']['dot1q']} create
                 ingress
@@ -3559,7 +3559,7 @@ exit all
                 script+= f"""
 configure service
     sdp {ep['sdp']} mpls create
-        description "{ep['descricao_sdp']}"
+        description "{ep['description_sdp']}"
         far-end {ep['ip_sdp']}
         ldp
         keep-alive
@@ -3567,11 +3567,11 @@ configure service
         exit
         no shutdown
     exit
-    epipe {ep['epipe']} name "{ep['descricao_sdp']}" customer 21 create
-        description "{ep['descricao']}"
+    epipe {ep['epipe']} name "{ep['description_sdp']}" customer 21 create
+        description "{ep['description']}"
         service-mtu {ep['mtu']}
         sap {porta_edd}/1:{ep['vlan']}{'.'+ep['vlan2'] if ep.get('vlan2') else ''} create
-            description "{ep['descricao']}"
+            description "{ep['description']}"
             ingress
                 qos 499
                 aggregate-policer-rate {ep['velocidade']} burst default
