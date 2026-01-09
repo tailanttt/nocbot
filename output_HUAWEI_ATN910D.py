@@ -1,7 +1,3 @@
-import os 
-from dotenv import load_dotenv 
-load_dotenv()
-
 def gerar_script(
     hostname,
     ip_loopback,
@@ -509,7 +505,7 @@ Y
 ntp-service server source-interface all disable
 ntp-service ipv6 server source-interface all disable
 ntp-service authentication enable
-ntp-service authentication-keyid 6 authentication-mode md5 cipher {os.getenv("NTP")}
+ntp-service authentication-keyid 6 authentication-mode md5 cipher NTP6%@backbone
 ntp-service reliable authentication-keyid 6
 """
     for ip in ntp_ips:
@@ -818,7 +814,7 @@ interface {porta_fo}.{fibra[i]["bdi"]}
 description {fibra[i]['description_bdi']}
 ip address {fibra[i]['ip_address']} {fibra[i]['mask']}
 pim sm
-ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
+ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
 ospf cost {fibra[i]['ospf_cost']}
 ospf network-type p2p
 ospf ldp-sync
@@ -852,7 +848,7 @@ lldp enable
 undo dcn
 ip address {fibra[i]['ip_address']} {fibra[i]['mask']}
 pim sm
-ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
+ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
 ospf cost {fibra[i]['ospf_cost']}
 ospf network-type p2p
 ospf ldp-sync
@@ -998,7 +994,7 @@ mtu {mwrot[x]["porta_logica"]["mtu"]}
 vlan-type dot1q {mwrot[x]["porta_logica"]["bdi"]}
 ip address {mwrot[x]["porta_logica"]["ip_address"]} {mwrot[x]["porta_logica"]["mask"]}
 pim sm
-ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
+ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
 ospf cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 ospf network-type p2p
 ospf ldp-sync
@@ -1027,7 +1023,7 @@ pim sm
 control-flap
 lldp enable
 undo dcn
-ospf authentication-mode md5 1 cipher {os.getenv("OSPF")}
+ospf authentication-mode md5 1 cipher BaCkBoNeOSPF!#@$
 ospf cost {mwrot[x]["porta_logica"]["ospf_cost"]}
 ospf network-type p2p
 ospf ldp-sync
@@ -1139,7 +1135,7 @@ private-4-byte-as disable
 group CSG-AGG internal
 peer CSG-AGG description PEERS RRs
 peer CSG-AGG connect-interface LoopBack100
-peer CSG-AGG password cipher {os.getenv("BGP")}"""
+peer CSG-AGG password cipher BaCkBoNeBGP!#@$"""
 
     for i in range(len(bgp["ips_vizinhos"])):
         script += f"""
@@ -1524,12 +1520,11 @@ user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT 
         script += f"""#====================================================================
 # SERVIÇOS MOVEIS INTERFACE FISICA
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}
+interface {porta_movel}
 description {movel[x]["description"]}
 undo shutdown
 undo lldp enable
-undo dcn 
-{f"speed {movel[x]['speed']}" if movel[x]['speed'] else ""}
+undo dcn {"\n" + "speed " + movel[x]["speed"] if movel[x]["speed"] else "" }
 duplex full
 #
 """
@@ -1538,7 +1533,7 @@ duplex full
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 2G ABIS
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance ABIS
@@ -1553,7 +1548,7 @@ undo shutdown
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 3G IUB-DADOS
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance IUB-DADOS
@@ -1568,7 +1563,7 @@ undo shutdown
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 4G S1
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance S1
@@ -1598,7 +1593,7 @@ undo shutdown
                 script += f"""#====================================================================
 # Configuracao Sub-interface GERENCIA e DHCP
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance GERENCIA
@@ -1609,7 +1604,7 @@ traffic-policy TC20_GERENCIA_MOVEL_IN inbound
                 if movel[x]["bdis"][y]["dhcp"]:
                     script += "dhcp select relay\n"
                     for z in range(len(movel[x]["bdis"][y]["dhcp"])):
-                        script += f"ip relay address {movel[x]['bdis'][y]['dhcp'][z]}\n"
+                        script += f"ip relay address {movel[x]["bdis"][y]["dhcp"][z]}\n"
                         script += f"""ip relay source-ip-address {movel[x]["bdis"][y]["ip_address"]} vpn-instance GERENCIA\n"""
                     script += f"""qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if  "Ten" in movel[x]["interface"] else "1" }G_OUT outbound
 undo shutdown
@@ -1770,7 +1765,7 @@ user-queue cir {valor} pir {valor} flow-queue CIRCUITO-{valor}KBPS inbound
 
 # Interface física
         script += f"""
-interface GigabitEthernet0/2/{porta_edd}
+interface {porta_edd}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]['description']}
 undo shutdown
@@ -1783,7 +1778,7 @@ statistic enable
         for y in range (len(empresarial[x].get("servicos"))):
             if empresarial[x]["servicos"][y].get("tipo_servico") == "gerencia":
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
+interface {porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]["servicos"][y]['bdi_description']}
@@ -1796,7 +1791,7 @@ qos-profile CIRCUITO-512KBPS inbound
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico_q":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}
 mtu {empresarial[x]["servicos"][y].get('mtu', empresarial[x]['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
 set flow-stat interval 30
@@ -1811,7 +1806,7 @@ traffic-policy TC20_EoMPLS_IN inbound pe-vid {empresarial[x]["servicos"][y]["dot
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]["servicos"][y].get('mtu', item['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
@@ -1972,20 +1967,20 @@ hwtacacs-server authorization 10.108.199.25 secondary
 hwtacacs-server accounting 10.129.199.25
 hwtacacs-server accounting 10.108.199.25 secondary
 hwtacacs-server source-ip {ip_loopback}
-hwtacacs-server shared-key cipher {os.getenv("TACACS")}
+hwtacacs-server shared-key cipher CLAROSECkey$321
 hwtacacs-server timer response-timeout 10
 hwtacacs-server user-name original
 #
 #
 aaa
 user-password password-force-change disable
-local-user root password irreversible-cipher {os.getenv("ROOT")}
+local-user root password irreversible-cipher Changeme_123
 local-user root service-type terminal ssh
 local-user root level 3
 local-user root state block fail-times 3 interval 5
 local-user root ftp-directory cfcard:/
 local-user root user-group manage-ug
-local-user nsvcadm password irreversible-cipher {os.getenv("NSVCADM")}
+local-user nsvcadm password irreversible-cipher #Hu@We1#CI@ro#
 local-user nsvcadm service-type terminal ssh
 local-user nsvcadm level 3
 local-user nsvcadm state block fail-times 3 interval 5
@@ -2125,7 +2120,7 @@ user-interface maximum-vty 21
 #
 user-interface con 0
 authentication-mode aaa
-set authentication password cipher {os.getenv("NSVCADM")}
+set authentication password cipher #Hu@We1#Cl@r0#
 history-command max-size 50
 #
 user-interface vty 0 20
@@ -2257,11 +2252,11 @@ save
 # Insere o DE PARA no topo do script
     script = de_para_texto + script
 
-## Salva o script final
-#    with open(f"scripts/{hostname}_HUAWEI_ATN910D.txt", 'w', encoding='utf-8') as arquivo:
-#        arquivo.write(script)
-#
-#    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
+# Salva o script final
+    with open(f"scripts/{hostname}_HUAWEI_ATN910D.txt", 'w', encoding='utf-8') as arquivo:
+        arquivo.write(script)
 
-    return script, banner, banner_roteador
+    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
+
+#    return script, banner, banner_roteador
 
