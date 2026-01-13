@@ -1,6 +1,7 @@
 import streamlit as st
 from output_HUAWEI_ATN910D import gerar_script as gerar_huawei
 from output_ZTE_6120H import gerar_script as gerar_zte
+from output_NOKIA_IXRe2 import gerar_script as gerar_nokia
 
 def pagina_integracao():
     st.markdown("<h3 style='text-align: center;'>INTEGRAÇÃO DE ROTEADOR</h3>", unsafe_allow_html=True)
@@ -26,7 +27,7 @@ def pagina_integracao():
         return f"0.0.{parte3}.{parte4}"
 
     # Seleção do modelo de saída logo no topo
-    modelos_saida = ["HUAWEI ATN910D_A", "ZTE 6120H_S"]
+    modelos_saida = ["HUAWEI ATN910D_A", "ZTE 6120H_S", "NOKIA IXR-e2"]
     modelo_destino = st.selectbox("Modelo de saída", modelos_saida)
 
     # Linha 1: Hostname e Loopback
@@ -147,7 +148,7 @@ def pagina_integracao():
     
             fibra.append({
                 "interface": f"{router_vizinho} {porta_vizinho}" or None,
-                "speed": f"{speed*1000}",
+                "speed": str(int(speed) * 1000),
                 "mtu": mtu or None,
                 "ospf_cost": ospf_cost or None,
                 "ip_address": ip_address or None,
@@ -393,6 +394,28 @@ def pagina_integracao():
                 processo_ospf=processo_ospf,
                 area_ospf_formatada=area_ospf,
                 bgp=bgp,
+                fibra=fibra,
+                mwrot=mwrot,
+                movel=[],
+                bateria=bateria,
+                empresarial=[],
+                rotas_estaticas=[],
+            )
+            st.session_state["script"] = script
+    
+        elif "NOKIA IXR-e2" in modelo_destino:
+            script = gerar_nokia(
+                hostname=hostname,
+                ip_loopback=ip_loopback,
+                uf=uf,
+                site=site,
+                saa=[],
+                ntp_ips=ntp_ips,
+                ptp=ptp_ips,
+                processo_ospf=processo_ospf,
+                area_ospf_formatada=area_ospf,
+                bgp=bgp,
+                twamp=[],
                 fibra=fibra,
                 mwrot=mwrot,
                 movel=[],
