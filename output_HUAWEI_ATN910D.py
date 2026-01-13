@@ -1524,7 +1524,8 @@ interface {porta_movel}
 description {movel[x]["description"]}
 undo shutdown
 undo lldp enable
-undo dcn {"\n" + "speed " + movel[x]["speed"] if movel[x]["speed"] else "" }
+undo dcn 
+{ "speed " + movel[x]["speed"] if movel[x]["speed"] else "" }
 duplex full
 #
 """
@@ -2259,4 +2260,5 @@ save
     print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
 
 #    return script, banner, banner_roteador
+
 
