@@ -251,7 +251,7 @@ def pagina_integracao():
                 "mtu": mtu or None,
                 "bandwidth_mbps": bandwidth,
                 "bandwidth": str(int(bandwidth) * 1000) if bandwidth and bandwidth.isdigit() else None,
-                "speed": f"{speed*1000}",
+                "speed": str(int(speed) * 1000),
                 "bridge_domains": [vlan] if vlan else [],
                 "dot1qs": [vlan] if porta_logica and vlan else [],
                 "bnm_ativo": bnm_ativo,
@@ -453,4 +453,5 @@ def pagina_integracao():
                                 file_name=f"{st.session_state['hostname']}_{st.session_state['modelo_nome']}.txt",
                                 mime="text/plain")
             st.subheader("📄 Script Gerado")
+
             st.code(st.session_state["script"], language="bash")
