@@ -1626,20 +1626,20 @@ configure router ospf
                 interface-type point-to-point
                 mtu 1500"""
             if port["lag"]:
-                script += """
+                script += f"""
                 authentication-type password
                 authentication-key {os.getenv("OSPF_NOKIA")}"""
             else:
                 if port["interfaces"][0].get("bfd"):
                     script += """
                 bfd-enable remain-down-on-failure"""
-                script += """
+                script += f"""
                 authentication-type password
                 authentication-key {os.getenv("OSPF_NOKIA")}"""
             script += """
                 no shutdown
             exit"""
-    
+password "{os.getenv("NOKIA_TELE")}"    
     for port in mwrot:
         if port.get("interfaces") and len(port["interfaces"]) > 0:
             script += f"""
@@ -1647,14 +1647,14 @@ configure router ospf
                 interface-type point-to-point
                 mtu 1500"""
             if port["lag"]:
-                script += """
+                script += f"""
                 authentication-type password
                 authentication-key {os.getenv("OSPF_NOKIA")}"""
             else:
                 if port["interfaces"][0].get("bfd"):
-                    script += """
+                    script += f"""
                 bfd-enable remain-down-on-failure"""
-                script += """
+                script += f"""
                 authentication-type password
                 authentication-key {os.getenv("OSPF_NOKIA")}"""
             script += """
