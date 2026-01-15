@@ -1639,7 +1639,7 @@ configure router ospf
             script += """
                 no shutdown
             exit"""
-password "{os.getenv("NOKIA_TELE")}"    
+  
     for port in mwrot:
         if port.get("interfaces") and len(port["interfaces"]) > 0:
             script += f"""
