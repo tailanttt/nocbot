@@ -1524,7 +1524,7 @@ user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT 
         script += f"""#====================================================================
 # SERVIÇOS MOVEIS INTERFACE FISICA
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}
+interface {porta_movel}
 description {movel[x]["description"]}
 undo shutdown
 undo lldp enable
@@ -1538,7 +1538,7 @@ duplex full
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 2G ABIS
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance ABIS
@@ -1553,7 +1553,7 @@ undo shutdown
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 3G IUB-DADOS
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance IUB-DADOS
@@ -1568,7 +1568,7 @@ undo shutdown
                 script += f"""#====================================================================
 # CONFIGURAÇÃO 4G S1
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance S1
@@ -1598,7 +1598,7 @@ undo shutdown
                 script += f"""#====================================================================
 # Configuracao Sub-interface GERENCIA e DHCP
 #====================================================================
-interface GigabitEthernet0/2/{porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
+interface {porta_movel}.{movel[x]["bdis"][y]["bridge_domain"]}
 vlan-type dot1q {movel[x]["bdis"][y]["dot1q"]}
 description {movel[x]["bdis"][y]["description"]}
 ip binding vpn-instance GERENCIA
@@ -1770,7 +1770,7 @@ user-queue cir {valor} pir {valor} flow-queue CIRCUITO-{valor}KBPS inbound
 
 # Interface física
         script += f"""
-interface GigabitEthernet0/2/{porta_edd}
+interface {porta_edd}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]['description']}
 undo shutdown
@@ -1783,7 +1783,7 @@ statistic enable
         for y in range (len(empresarial[x].get("servicos"))):
             if empresarial[x]["servicos"][y].get("tipo_servico") == "gerencia":
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
+interface {porta_edd}.{empresarial[x]["servicos"][y]['bridge_domain']}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]['mtu']}
 description {empresarial[x]["servicos"][y]['bdi_description']}
@@ -1796,7 +1796,7 @@ qos-profile CIRCUITO-512KBPS inbound
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico_q":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}
 mtu {empresarial[x]["servicos"][y].get('mtu', empresarial[x]['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
 set flow-stat interval 30
@@ -1811,7 +1811,7 @@ traffic-policy TC20_EoMPLS_IN inbound pe-vid {empresarial[x]["servicos"][y]["dot
             elif empresarial[x]["servicos"][y].get("tipo_servico") == "servico":
                 vcid_formatado = str(empresarial[x]["servicos"][y]['xconnect_vcid'])[-8:]
                 script += f"""
-interface GigabitEthernet0/2/{porta_edd}.{vcid_formatado}
+interface {porta_edd}.{vcid_formatado}
 vlan-type dot1q {empresarial[x]["servicos"][y]['dot1q']}
 mtu {empresarial[x]["servicos"][y].get('mtu', item['mtu'])}
 description {empresarial[x]["servicos"][y]['service_description']}
@@ -2264,4 +2264,5 @@ save
 #    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
 
     return script, banner, banner_roteador
+
 
