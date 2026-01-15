@@ -3578,7 +3578,7 @@ configure service
             exit
             no shutdown
         exit
-        spoke-sdp {ep['ip_sdp']}:{ep['epipe']} create
+        spoke-sdp {ep['sdp']}:{ep['epipe']} create
             no shutdown
         exit
         no shutdown
@@ -3631,5 +3631,6 @@ configure service
 #    with open(f"scripts/{hostname}_NOKIA_IXRe2.txt", 'w', encoding='utf-8') as arquivo:
 #       arquivo.write(script)
 #    print(f"✅ Script gerado com sucesso para {hostname} NOKIA IXRe2.")
+
 
     return script
