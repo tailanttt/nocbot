@@ -900,7 +900,7 @@ queue cs7 pq shaping shaping-percentage 5
 """
         for i in range(len(mwrot)):
             script += f"""#
-qos-profile {mwrot[i]["bandwidth_mbps"]}M-MWBN
+qos-profile {mwrot[i]["bandwidth_mbps"]}M
 description Microwave Link {mwrot[i]["bandwidth_mbps"]}M
 user-queue cir {mwrot[i]["bandwidth"]} pir {mwrot[i]["bandwidth"]} flow-queue CLARO_MW_NNI outbound
 #"""
@@ -2264,5 +2264,6 @@ save
 #    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
 
     return script, banner, banner_roteador
+
 
 
