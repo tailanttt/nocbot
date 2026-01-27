@@ -930,6 +930,22 @@ qos-profile NNI_MW_PHB20_BNM
 description Microwave Link_BNM
 user-queue cir-percentage 100 pir-percentage 100 flow-queue NNI_MW_PHB20_BNM
 #
+#========================================
+# SHAPE DO RÁDIO BNM
+#========================================
+#
+qos-profile TC20_GERENCIA_MOVEL_SHAPE_1G_OUT
+user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT outbound
+#
+#
+qos-profile TC20_GERENCIA_MOVEL_SHAPE_10G_OUT
+user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT outbound
+#"""
+    if mwrot:
+        script += f"""
+#========================================
+# POLICY RÁDIO
+#========================================
 traffic classifier TC20_GERENCIA_RT-SYNC_IN operator or
 if-match dscp cs7
 if-match dscp ef
@@ -954,19 +970,6 @@ flow-queue TC20_GERENCIA_MOVEL_OUT
 queue af2 wfq weight 100
 queue cs7 pq shaping shaping-percentage 50
 #
-#========================================
-# SHAPE DO RÁDIO BNM
-#========================================
-#
-qos-profile TC20_GERENCIA_MOVEL_SHAPE_1G_OUT
-user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT outbound
-#
-#
-qos-profile TC20_GERENCIA_MOVEL_SHAPE_10G_OUT
-user-queue cir-percentage 5 pir-percentage 5 flow-queue TC20_GERENCIA_MOVEL_OUT outbound
-#"""
-    if mwrot:
-        script += f"""
 #========================================
 # INTERFACES NNI RADIO
 #=======================================
@@ -2264,6 +2267,7 @@ save
 #    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
 
     return script, banner, banner_roteador
+
 
 
 
