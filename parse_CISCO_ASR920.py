@@ -178,7 +178,7 @@ def extrair_dados(backup):
             bateria.append({
                 'interface': porta.group(1) if porta else None,
                 'description': descricao.group(1).strip() if descricao else None,
-                'speed': speed.group(1) if speed else None,
+                "speed": speed.group(1) if speed else "10000" if porta.group(1).startswith("Ten") else "1000",
                 'mtu': mtu.group(1) if mtu else None,
                 'vrf': vrf_match.group(1) if vrf_match else None,
                 'ip_address': ip_match.group(1) if ip_match else None,
@@ -325,5 +325,6 @@ def extrair_dados(backup):
                 empresarial.append(dados_base)
 
         resultado["empresarial"] = empresarial
+
 
     return resultado
