@@ -16,6 +16,7 @@ def modelo_destino_nome(md: str) -> str:
     return md.replace(" ", "_")
 
 # ------------------- PÁGINA SWAP -------------------
+
 def pagina_swap():
     st.markdown("<h3 style='text-align: center;'>SWAP DE ROTEADOR</h3>", unsafe_allow_html=True)
 
@@ -46,11 +47,20 @@ def pagina_swap():
         arquivo = st.file_uploader("Upload (.txt ou .cfg)", type=["txt", "cfg"])
         if arquivo:
             raw_bytes = arquivo.getvalue()
-            backup = raw_bytes.decode("utf-8", errors="ignore")
-            backup = backup.replace("\r\n", "\n")
+            backup = raw_bytes.decode("utf-8", errors="ignore").replace("\r\n", "\n")
 
-    # Etapa 3: processar
-    if backup:
+    # ------------------- ETAPA 3: PROCESSAR -------------------
+
+    # Linha de botões (sempre aparece)
+    col1, col2, col3, col4 = st.columns(4)
+    gerar_btn = col1.button("🚀 Gerar Script")
+
+    # Ao clicar, valida e processa
+    if gerar_btn:
+        if not backup or not backup.strip():
+            st.warning("⚠️ Cole o *show run* (ou faça upload) antes de gerar o script.")
+            st.stop()
+
         # Extrair dados
         if modelo_entrada == "CISCO_ASR920":
             dados = extrair_cisco(backup)
@@ -58,108 +68,119 @@ def pagina_swap():
             dados = extrair_nokia(backup)
         else:
             st.error(f"⚠️ Modelo {modelo_entrada} não implementado.")
-            return
+            st.stop()
 
         hostname = dados["hostname"]
         modelo_nome = modelo_destino_nome(modelo_destino)
 
-        # Linha de botões
-        col1, col2, col3, col4 = st.columns(4)
-        gerar_btn = col1.button("🚀 Gerar Script")
+        # (opcional) garantia extra caso "ospf" venha como None
+        ospf = dados.get("ospf") or None
 
-        # Se clicar em gerar
-        if gerar_btn:
-            if "HUAWEI ATN910D_A" in modelo_destino:
-                script, banner, banner_roteador = gerar_huawei(
-                    hostname=hostname,
-                    ip_loopback=dados["loopback100"],
-                    uf=dados["uf"],
-                    site=dados["site"],
-                    ntp_ips=dados["ntp"],
-                    ptp_ips=dados["ptp"],
-                    processo_ospf=dados["ospf"]["processo"] if dados["ospf"] else None,
-                    area_ospf_formatada=dados["ospf"]["area_formatada"] if dados["ospf"] else None,
-                    bgp=dados["bgp"],
-                    rotas_estaticas=dados["rotas_estaticas"],
-                    fibra=dados["fibra"],
-                    mwrot=dados["mwrot"],
-                    movel=dados["movel"],
-                    bateria=dados["bateria"],
-                    empresarial=dados["empresarial"],
-                )
-                st.session_state["script"] = script
-                st.session_state["banner"] = banner
-                st.session_state["banner_roteador"] = banner_roteador
-                st.session_state["modelo_nome"] = modelo_nome
-                st.session_state["hostname"] = hostname
+        # Gerar conforme modelo de saída
+        if "HUAWEI ATN910D_A" in modelo_destino:
+            script, banner, banner_roteador = gerar_huawei(
+                hostname=hostname,
+                ip_loopback=dados["loopback100"],
+                uf=dados["uf"],
+                site=dados["site"],
+                ntp_ips=dados["ntp"],
+                ptp_ips=dados["ptp"],
+                processo_ospf=ospf["processo"] if ospf else None,
+                area_ospf_formatada=ospf["area_formatada"] if ospf else None,
+                bgp=dados["bgp"],
+                rotas_estaticas=dados["rotas_estaticas"],
+                fibra=dados["fibra"],
+                mwrot=dados["mwrot"],
+                movel=dados["movel"],
+                bateria=dados["bateria"],
+                empresarial=dados["empresarial"],
+            )
+            st.session_state["script"] = script
+            st.session_state["banner"] = banner
+            st.session_state["banner_roteador"] = banner_roteador
 
-            elif "ZTE 6120H_S" in modelo_destino:
-                script = gerar_zte(
-                    hostname=hostname,
-                    ip_loopback=dados["loopback100"],
-                    uf=dados["uf"],
-                    site=dados["site"],
-                    ntp_ips=dados["ntp"],
-                    ptp_ips=dados["ptp"],
-                    processo_ospf=dados["ospf"]["processo"] if dados["ospf"] else None,
-                    area_ospf_formatada=dados["ospf"]["area_formatada"] if dados["ospf"] else None,
-                    bgp=dados["bgp"],
-                    rotas_estaticas=dados["rotas_estaticas"],
-                    fibra=dados["fibra"],
-                    mwrot=dados["mwrot"],
-                    movel=dados["movel"],
-                    bateria=dados["bateria"],
-                    empresarial=dados["empresarial"],
-                )
-                st.session_state["script"] = script
-                st.session_state["modelo_nome"] = modelo_nome
-                st.session_state["hostname"] = hostname
+        elif "ZTE 6120H_S" in modelo_destino:
+            script = gerar_zte(
+                hostname=hostname,
+                ip_loopback=dados["loopback100"],
+                uf=dados["uf"],
+                site=dados["site"],
+                ntp_ips=dados["ntp"],
+                ptp_ips=dados["ptp"],
+                processo_ospf=ospf["processo"] if ospf else None,
+                area_ospf_formatada=ospf["area_formatada"] if ospf else None,
+                bgp=dados["bgp"],
+                rotas_estaticas=dados["rotas_estaticas"],
+                fibra=dados["fibra"],
+                mwrot=dados["mwrot"],
+                movel=dados["movel"],
+                bateria=dados["bateria"],
+                empresarial=dados["empresarial"],
+            )
+            st.session_state["script"] = script
 
-            elif "NOKIA IXR-e2" in modelo_destino:
-                script = gerar_nokia(
-                    hostname=dados["hostname"],
-                    ip_loopback=dados["loopback100"],
-                    uf=dados["uf"],
-                    site=dados["site"],
-                    saa=dados["saa"],
-                    ntp_ips=dados["ntp"],
-                    ptp=dados["ptp"],
-                    processo_ospf=dados["ospf"]["processo"] if dados.get("ospf") else None,
-                    area_ospf_formatada=dados["area_formatada"] if dados.get("area_formatada") else None,
-                    bgp=dados["bgp"],
-                    rotas_estaticas=dados["rotas_estaticas"],
-                    twamp=dados["twamp"],
-                    fibra=dados["fibra"],
-                    mwrot=dados["mwrot"],
-                    movel=dados["movel"],
-                    bateria=dados["bateria"],
-                    empresarial=dados["empresarial"],
-                )
-                st.session_state["script"] = script
-                st.session_state["modelo_nome"] = modelo_nome
-                st.session_state["hostname"] = hostname
+        elif "NOKIA IXR-e2" in modelo_destino:
+            script = gerar_nokia(
+                hostname=dados["hostname"],
+                ip_loopback=dados["loopback100"],
+                uf=dados["uf"],
+                site=dados["site"],
+                saa=dados["saa"],
+                ntp_ips=dados["ntp"],
+                ptp=dados["ptp"],
+                processo_ospf=ospf["processo"] if ospf else None,
+                area_ospf_formatada=dados.get("area_formatada"),
+                bgp=dados["bgp"],
+                rotas_estaticas=dados["rotas_estaticas"],
+                twamp=dados["twamp"],
+                fibra=dados["fibra"],
+                mwrot=dados["mwrot"],
+                movel=dados["movel"],
+                bateria=dados["bateria"],
+                empresarial=dados["empresarial"],
+            )
+            st.session_state["script"] = script
 
-        # Botões de download e exibição
-        if "script" in st.session_state:
-            if "HUAWEI ATN910D_A" in modelo_destino:
-                col2.download_button("⬇️ Script", st.session_state["script"],
-                                     file_name=f"{st.session_state['hostname']}_{st.session_state['modelo_nome']}.txt",
-                                     mime="text/plain")
-                col3.download_button("⬇️ Banner", st.session_state["banner"],
-                                     file_name="banner.txt", mime="text/plain")
-                col4.download_button("⬇️ Banner Roteador", st.session_state["banner_roteador"],
-                                     file_name=f"{st.session_state['hostname']}_banner.txt", mime="text/plain")
+        # Infos comuns (salva pra download/exibição)
+        st.session_state["modelo_nome"] = modelo_nome
+        st.session_state["hostname"] = hostname
 
-                st.subheader("📄 Script Gerado")
-                st.code(st.session_state["script"], language="bash")
-                st.subheader("📄 Banner Institucional")
-                st.code(st.session_state["banner"], language="bash")
-                st.subheader(f"📄 Banner do Roteador ({st.session_state['hostname']})")
-                st.code(st.session_state["banner_roteador"], language="bash")
+    # ------------------- DOWNLOADS / EXIBIÇÃO -------------------
+    if "script" in st.session_state:
+        if "HUAWEI ATN910D_A" in modelo_destino:
+            col2.download_button(
+                "⬇️ Script",
+                st.session_state["script"],
+                file_name=f"{st.session_state['hostname']}_{st.session_state['modelo_nome']}.txt",
+                mime="text/plain",
+            )
+            col3.download_button(
+                "⬇️ Banner",
+                st.session_state["banner"],
+                file_name="banner.txt",
+                mime="text/plain",
+            )
+            col4.download_button(
+                "⬇️ Banner Roteador",
+                st.session_state["banner_roteador"],
+                file_name=f"{st.session_state['hostname']}_banner.txt",
+                mime="text/plain",
+            )
 
-            else:
-                col2.download_button("⬇️ Script", st.session_state["script"],
-                                     file_name=f"{st.session_state['hostname']}_{st.session_state['modelo_nome']}.txt",
-                                     mime="text/plain")
-                st.subheader("📄 Script Gerado")
-                st.code(st.session_state["script"], language="bash")
+            st.subheader("📄 Script Gerado")
+            st.code(st.session_state["script"], language="bash")
+
+            st.subheader("📄 Banner Institucional")
+            st.code(st.session_state["banner"], language="bash")
+
+            st.subheader(f"📄 Banner do Roteador ({st.session_state['hostname']})")
+            st.code(st.session_state["banner_roteador"], language="bash")
+        else:
+            col2.download_button(
+                "⬇️ Script",
+                st.session_state["script"],
+                file_name=f"{st.session_state['hostname']}_{st.session_state['modelo_nome']}.txt",
+                mime="text/plain",
+            )
+            st.subheader("📄 Script Gerado")
+            st.code(st.session_state["script"], language="bash")
