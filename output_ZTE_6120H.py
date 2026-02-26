@@ -2081,6 +2081,7 @@ interface {porta_edd}.{vcid_formatado}"""
                     if empresarial[x]["servicos"][y].get("service_policy") is not None:
                         script += f"""
 rate-limit input localport cir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps pir {int(float(empresarial[x]['servicos'][y]['service_policy']) * 1.01)} kbps conform-action transmit exceed-action drop violate-action drop
+$
 $"""
 
                     script += f"""
@@ -2359,3 +2360,4 @@ $
 #    print(f"✅ Script gerado com sucesso para {hostname}_ZTE_6120H.")
 
     return script
+
