@@ -470,9 +470,6 @@ route-target import {bgp["processo"]}:7281
 route-target export {bgp["processo"]}:7282
   $
 $
-"""
-    if fibra:
-        script += """
 $ ========================================
 $ QoS NNI
 $ =======================================
@@ -2360,4 +2357,5 @@ $
 #    print(f"✅ Script gerado com sucesso para {hostname}_ZTE_6120H.")
 
     return script
+
 
