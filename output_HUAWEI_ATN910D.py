@@ -715,9 +715,7 @@ ip vpn-instance __LOCAL_OAM_VPN__
 ipv4-family
 ipv6-family
 #
-#"""
-    if fibra:
-        script += """
+#
 #========================================
 # QoS NNI FIBRA
 #========================================
@@ -2267,6 +2265,7 @@ save
 #    print(f"✅ Script e banners gerados com sucesso para {hostname}_HUAWEI_ATN910D")
 
     return script, banner, banner_roteador
+
 
 
 
