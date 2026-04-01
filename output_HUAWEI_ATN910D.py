@@ -295,9 +295,9 @@ set service-mode card-bandwidth-mode eth-2x100ge-20x10gf-4xgf-mode slot 2
 Y
 #
 license
-active port-basic slot 2 port 14-23
-active port-service-enhance slot 2 port 14-23
-active port-mode-channel slot 2 port 14-23
+active port-basic slot 2 port 14-25
+active port-service-enhance slot 2 port 14-25
+active port-mode-channel slot 2 port 14-25
 #
 #========================================
 # DESATIVANDO TODAS AS PORTAS
