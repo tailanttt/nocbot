@@ -711,7 +711,7 @@ $ =======================================
 $
 """
     for i in range(len(fibra)):
-            porta_fo = (portas100.pop(0) if fibra[i].get('speed') == '100000' else portas10.pop(0) if fibra[i].get('speed') == '10000' else portas1.pop(-1) if fibra[i].get('speed') == '1000')
+            porta_fo = (portas100.pop(0) if fibra[i].get('speed') == '100000' else portas10.pop(0) if fibra[i].get('speed') == '10000' else portas1.pop(-1) if fibra[i].get('speed') == '1000' else portas10.pop(0))
             portas_fo.append(porta_fo)
             if "description_bdi" in fibra[i]:
                 script += f"""interface {porta_fo}
