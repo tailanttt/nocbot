@@ -801,7 +801,7 @@ color green low-limit 50 high-limit 90 discard-percentage 100
 # NNI padrão 0/2/20 ao 23 FIBRA
 """
     for i in range(len(fibra)):
-        porta_fo = portas10.pop()
+        porta_fo = (portas100.pop(0) if fibra[i].get('speed') == '100000' else portas10.pop(0) if fibra[i].get('speed') in ['10000', '1000'])
         portas_fo.append(porta_fo)
         if "description_bdi" in fibra[i]:
             script += f"""interface {porta_fo}
