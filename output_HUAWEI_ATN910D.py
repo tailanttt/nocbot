@@ -1049,8 +1049,8 @@ undo shutdown
                 script += f"""interface {porta_mwrot}.{mwrot[x]["porta_gerencia"]["bdi"]}
 description {mwrot[x]["porta_gerencia"]["description"]}
 vlan-type dot1q {mwrot[x]["porta_gerencia"]["dot1q"]}
-ip address {mwrot[x]["porta_gerencia"]["ip_address"]} {mwrot[x]["porta_gerencia"]["mask"]}
 ip binding vpn-instance GERENCIA
+ip address {mwrot[x]["porta_gerencia"]["ip_address"]} {mwrot[x]["porta_gerencia"]["mask"]}
 traffic-policy TC20_GERENCIA_MOVEL_IN inbound
 qos-profile TC20_GERENCIA_MOVEL_SHAPE_{"10" if mwrot[x]["speed"] == "10000" else "1"}G_OUTG_OUT outbound
 statistic enable
