@@ -67,7 +67,7 @@ def gerar_script(
 #$ 15 e 16 - 1G ou 10Gb
 #$ 17 a 20 - 1G ou 10Gb
 #$ 21 a 24 - 1G ou 10Gb
-#$ 25 a 32 - 10Gb
+#$ 25 a 33 - 10Gb
 #$ 34 e 36 - 100Gb                
     
     script = f"""$    
