@@ -1978,7 +1978,7 @@ $
 $
 """
         for x in range (len(empresarial)):  
-            porta_edd = (portas10 if empresarial[i].get('speed') == '10000' else portas1).pop(0)
+            porta_edd = (portas10 if empresarial[x].get('speed') == '10000' else portas1).pop(0)
             portas_edd.append(porta_edd)
 # Interface física
             script += f"""interface {porta_edd}
